@@ -181,12 +181,12 @@ func (m *PathElement) Add(path SubPath) (elem *PathElement, err error) {
 	return elem, nil
 }
 
-// attach an existing path element
+// attach an existing PathElement to a parent PathElement
 func (m *PathElement) attach(elem *PathElement) (err error) {
 
 	// check this is a properly formed element
 	if elem.subs == nil {
-		return errors.Errorf("malformed element - no subs")
+		elem.subs = make(map[SubPath]*PathElement)
 	}
 
 	m.mu.Lock()

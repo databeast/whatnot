@@ -1,4 +1,5 @@
 // +build errtrace
+
 package whatnot
 
 /*
