@@ -34,6 +34,21 @@ func TestPathElements(t *testing.T) {
 		return
 	}
 
+	extraElement, err := lastElement.AppendRelativePath(PathString("subdata"))
+	if !assert.Nil(t, err, "appending another sub-element returned error") {
+		t.Error(err.Error())
+		return
+	}
+
+	if !assert.Equal(t, SubPath("subdata"), extraElement.SubPath(), "did not match original subpath string") {
+		t.Error("mismatch between provided and created subpath")
+	}
+
+	if !assert.Equal(t, lastElement, extraElement.Parent(), "incorrect parent returned") {
+		t.Error("new element did not obtain correct parent element")
+		return
+	}
+
 }
 
 func appendPathElement(t *testing.T) {
