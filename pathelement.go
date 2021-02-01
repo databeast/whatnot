@@ -5,29 +5,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/databeast/whatnot/access"
 	"github.com/databeast/whatnot/mutex"
 	"github.com/pkg/errors"
 )
-
-type changeType int
-
-const (
-	UNKNOWN  changeType = 0
-	LOCKED   changeType = 1
-	UNLOCKED changeType = 2
-	ADDED    changeType = 3
-	EDITED   changeType = 4
-	DELETED  changeType = 5
-)
-
-// elementChange is a notification channel structure
-// for communicating changes to individual elements to subscribed watchers
-type elementChange struct {
-	elem   *PathElement
-	change changeType
-	actor  access.Role
-}
 
 // PathElement is an individual section of a complete path
 type PathElement struct {
@@ -241,12 +221,6 @@ func (m *PathElement) FetchSubPath(subPath PathString) (*PathElement, error) {
 	}
 
 	return cur, nil
-}
-
-// PathSubscription implements a notification Subscription
-// to a given PathElement (and potentially all its descendents)
-type PathSubscription struct {
-	baseElement *PathElement
 }
 
 // FetchAllSubPaths returns the SubPath location of all descendent PathElements

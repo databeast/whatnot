@@ -1,4 +1,4 @@
-package whatnot
+package cluster
 
 /*
  gRPC-synchronized synchronization of namespaces across cluster instances

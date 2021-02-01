@@ -7,7 +7,32 @@ import (
 	"github.com/databeast/whatnot/access"
 )
 
+type changeType int
+
+const (
+	UNKNOWN  changeType = 0
+	LOCKED   changeType = 1
+	UNLOCKED changeType = 2
+	ADDED    changeType = 3
+	EDITED   changeType = 4
+	DELETED  changeType = 5
+)
+
+// elementChange is a notification channel structure
+// for communicating changes to individual elements to subscribed watchers
+type elementChange struct {
+	elem   *PathElement
+	change changeType
+	actor  access.Role
+}
+
 // new key additions recheck those lists, add watches on keys ?
+
+// PathSubscription implements a notification Subscription
+// to a given PathElement (and potentially all its descendents)
+type PathSubscription struct {
+	baseElement *PathElement
+}
 
 type ElementWatchSubscription struct {
 	onElement   *PathElement // the Path Element this is a subscription to
