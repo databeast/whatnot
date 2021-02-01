@@ -13,10 +13,19 @@ func TestNamespaces(t *testing.T) {
 }
 
 func registerNewNamespace(t *testing.T) {
+	const testNameSpace = "globaltest"
 	t.Log("Creating Namespace Manager")
 	manager = NewNamespaceManager()
-	gns := NewNamespace("global")
+	gns := NewNamespace(testNameSpace)
 	err := manager.RegisterNamespace(gns)
-	assert.Nil(t, err, "RegisterNamespace returned error")
+	if !assert.Nil(t, err, "RegisterNamespace returned error") {
+		return
+	}
+
+	fns, err := manager.FetchNamespace(testNameSpace)
+	if !assert.Nil(t, err, "FetchNamespace returned error") {
+		return
+	}
+	assert.Equal(t, gns.name, fns.name, "namespace identifiers did not match")
 
 }

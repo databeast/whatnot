@@ -45,7 +45,7 @@ func (m AbsolutePath) ToPathString() PathString {
 	return PathString(fmt.Sprintf("/%s", joinPath(m)))
 }
 
-// SubtractPath
+// SubtractPath removes the right-hand-size RelativePath from the AbsolutePath
 func (m AbsolutePath) SubtractPath(path AbsolutePath) PathString {
 	return ""
 }
