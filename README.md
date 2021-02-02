@@ -1,7 +1,7 @@
+
+
+# Whatnot - an Etcd-like Distributed Key Store
 ![Go](https://github.com/databeast/whatnot/workflows/Go/badge.svg)
-
-# whatnot
-
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/a57e480a071f4017a3692adaf7f1da17)](https://app.codacy.com/gh/databeast/whatnot?utm_source=github.com&utm_medium=referral&utm_content=databeast/whatnot&utm_campaign=Badge_Grade)
 
 
