@@ -77,17 +77,14 @@ type optionName string
 
 const (
 	optionDiscoverGossip optionName = "gossip cluster discovery"
-	optionSyncRaft optionName = "raft cluster synchronization"
-	optionTrace optionName = "trace mutex locks"
-	optionBreak optionName = "break mutext deadlocking"
-	optionAcls optionName = "enable element permissions"
+	optionSyncRaft       optionName = "raft cluster synchronization"
+	optionTrace          optionName = "trace mutex locks"
+	optionBreak          optionName = "break mutext deadlocking"
+	optionAcls           optionName = "enable element permissions"
 )
 
-type ManagerOption func() {
-	optionName() string
-}
+type ManagerOption func() optionName
 
 var EnableSync = func() optionName {
-	return "cluster synchronization"
+	return optionName("cluster synchronization")
 }
-

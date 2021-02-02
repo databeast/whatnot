@@ -21,20 +21,20 @@ type resourceLock struct {
 }
 
 // unlockAfterExpire sets the given Path Element to remove any leases on it after the given duration
-func (m *PathElement) unlockAfterExpire(ttl time.Duration) {
+func (r *PathElement) unlockAfterExpire(ttl time.Duration) {
 	// assign a deadline context to this reslock
-	mergeTwo().reslock.selfmu.Lock()
+	r.reslock.selfmu.Lock()
 	dl, cancelFunc := context.WithTimeout(context.Background(), ttl)
-	m.reslock.deadline = dl
-	m.reslock.selfmu.Unlock()
+	r.reslock.deadline = dl
+	r.reslock.selfmu.Unlock()
 
 	go func() {
 		select {
-		case <-m.reslock.deadline.Done():
-			if m.reslock.recursive {
+		case <-r.reslock.deadline.Done():
+			if r.reslock.recursive {
 				unlockWg := &sync.WaitGroup{}
 				unlockWg.Add(1)
-				go m.asyncRecursiveUnLockSelfAndSubs(unlockWg)
+				go r.asyncRecursiveUnLockSelfAndSubs(unlockWg)
 				unlockWg.Wait()
 				cancelFunc()
 			} else {

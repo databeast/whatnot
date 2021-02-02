@@ -91,13 +91,3 @@ func (m *Namespace) FetchAllAbsolutePaths() (allpaths []AbsolutePath, err error)
 type NamespaceManagerOpt interface {
 	opt()
 }
-
-// WithLogger attaches a Logger to the Namespace manager
-// allowing you to insert your own logging solution into Whatnot
-func WithLogger(l Logger) {
-
-}
-
-func (op WithLogger) opt() {
-
-}
