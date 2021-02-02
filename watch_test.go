@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/databeast/whatnot/mutex"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestWatchNotifications(t *testing.T) {
@@ -24,9 +25,11 @@ func changeElementAndNotify(t *testing.T) {
 		subscriberNotify: nil,
 	}
 	sub := elem.SubscribeToEvents(false)
-	//select {
-	//	e := <- sub.Events():
-	//		assert.Equal(t, sub, e.sub, "returned modified element was not original element")
-	//}
+	select {
+	case e := <-sub.Events():
+		assert.Equal(t, sub, e.sub, "returned modified element was not original element")
+	default:
+
+	}
 
 }
