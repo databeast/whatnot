@@ -11,11 +11,12 @@ import (
 type NameSpaceManager struct {
 	namespaces map[string]*Namespace
 	mu         *mutex.SmartMutex
+	log        Logger
 }
 
 // NewNamespaceManager create a top-level namespace manager, to contain multiple subscribable namespaces
 // you probably only want to call this once, to initialize WhatNot, but who am I to tell you what your use cases are
-func NewNamespaceManager() *NameSpaceManager {
+func NewNamespaceManager(opts ...ManagerOption) *NameSpaceManager {
 	return &NameSpaceManager{
 		mu:         mutex.New(fmt.Sprintf("NameSpace Manager mutex")),
 		namespaces: make(map[string]*Namespace),
@@ -63,3 +64,30 @@ func (m *NameSpaceManager) FetchNamespace(name string) (ns *Namespace, err error
 		return nil, errors.Errorf("no such namespaces: %q", name)
 	}
 }
+
+// WithLogger attaches a Logger to the Namespace manager
+// allowing you to insert your own logging solution into Whatnot
+func (m *NameSpaceManager) WithLogger(l Logger) *NameSpaceManager {
+	m.log = l
+	return m
+
+}
+
+type optionName string
+
+const (
+	optionDiscoverGossip optionName = "gossip cluster discovery"
+	optionSyncRaft optionName = "raft cluster synchronization"
+	optionTrace optionName = "trace mutex locks"
+	optionBreak optionName = "break mutext deadlocking"
+	optionAcls optionName = "enable element permissions"
+)
+
+type ManagerOption func() {
+	optionName() string
+}
+
+var EnableSync = func() optionName {
+	return "cluster synchronization"
+}
+

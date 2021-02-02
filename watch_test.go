@@ -2,6 +2,8 @@ package whatnot
 
 import (
 	"testing"
+
+	"github.com/databeast/whatnot/mutex"
 )
 
 func TestWatchNotifications(t *testing.T) {
@@ -14,5 +16,17 @@ func createNewWatchOnElement(t *testing.T) {
 
 func changeElementAndNotify(t *testing.T) {
 	t.Log("testing that a notification is received when modifying a watched element")
+	elem := PathElement{
+		section:          SubPath("testelement"),
+		parent:           nil,
+		parentnotify:     nil,
+		mu:               &mutex.SmartMutex{},
+		subscriberNotify: nil,
+	}
+	sub := elem.SubscribeToEvents(false)
+	//select {
+	//	e := <- sub.Events():
+	//		assert.Equal(t, sub, e.sub, "returned modified element was not original element")
+	//}
 
 }
