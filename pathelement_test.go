@@ -49,7 +49,7 @@ func TestPathElements(t *testing.T) {
 		return
 	}
 
-	if !assert.Equal(t, extraElement lastElement.fetchSubElement(SubPath("subdata"), "sub-element not reachable from parent element") {
+	if !assert.Equal(t, extraElement, lastElement.fetchSubElement(SubPath("subdata"), "sub-element not reachable from parent element") {
 		t.Error("parent element of created sub-element not linked to new sub element correctly")
 	}
 
