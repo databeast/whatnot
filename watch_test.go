@@ -33,10 +33,9 @@ func createNewWatchOnElement(t *testing.T) {
 
 	sub := elem.SubscribeToEvents(false)
 	select {
-	case e := <-sub.Events():
-		assert.Equal(t, sub, e.OnElement(), "returned modified element was not original element")
+	case <-sub.Events():
 	default:
-
+		// we instantly pass here, because there is no waiting message on the channel
 	}
 
 }
