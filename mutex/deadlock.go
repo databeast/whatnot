@@ -151,7 +151,7 @@ func lock(lockFn func(), ptr interface{}) {
 		go func() {
 			for {
 				t := time.NewTimer(Opts.DeadlockTimeout)
-				defer t.Stop() // This runs after the losure finishes, but it's OK.
+				defer t.Stop() // This runs after the closure finishes, but it's OK.
 				select {
 				case <-t.C:
 					lo.mu.Lock()

@@ -107,7 +107,7 @@ func (m PathElement) FetchClosestSubPathTail(subPath PathString) *PathElement {
 func (m *PathElement) FetchClosestSubPath(subPath PathString) (pathchain []*PathElement) {
 	elems := splitPath(subPath)
 	var finalElement *PathElement
-	var currentElement *PathElement = m
+	var currentElement = m
 	var nextElement *PathElement
 	for _, e := range elems {
 		nextElement = currentElement.fetchSubElement(SubPath(e))
@@ -185,7 +185,7 @@ func (m *PathElement) AppendRelativePath(subPath PathString) (*PathElement, erro
 	}
 
 	pathElems := subPath.ToRelativePath()
-	var cur *PathElement = m
+	var cur = m
 	var err error
 	for _, e := range pathElems {
 		cur, err = m.Add(e)
@@ -212,7 +212,7 @@ func (m *PathElement) FetchSubPath(subPath PathString) (*PathElement, error) {
 	}
 
 	pathElems := subPath.ToRelativePath()
-	var cur *PathElement = m
+	var cur = m
 	for _, e := range pathElems {
 		cur = cur.fetchSubElement(e)
 		if cur == nil {
@@ -226,7 +226,6 @@ func (m *PathElement) FetchSubPath(subPath PathString) (*PathElement, error) {
 // FetchAllSubPaths returns the SubPath location of all descendent PathElements
 // underneath this PathElement
 func (m *PathElement) FetchAllSubPaths() (allpaths [][]SubPath, err error) {
-
 	for _, s := range m.subs {
 		elempaths := [][]SubPath{} // all Normalized SubPaths of this Element
 

@@ -8,6 +8,6 @@ type Logger interface {
 	Info(msg string)
 }
 
-func (ns Namespace) log() {
+func (m Namespace) log() {
 
 }

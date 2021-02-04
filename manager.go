@@ -86,5 +86,5 @@ const (
 type ManagerOption func() optionName
 
 var EnableSync = func() optionName {
-	return optionName("cluster synchronization")
+	return "cluster synchronization"
 }

@@ -32,11 +32,11 @@ func (m PathString) ToAbsolutePath() AbsolutePath {
 	if strings.HasPrefix(string(m), DELIMITER) == false {
 		return []SubPath{DELIMITER}
 	}
-	return AbsolutePath(splitPath(m))
+	return splitPath(m)
 }
 
 func (m PathString) ToRelativePath() RelativePath {
-	return RelativePath(splitPath(m))
+	return splitPath(m)
 }
 
 // ToPathString converts an absolute path back into

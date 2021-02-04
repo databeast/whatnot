@@ -36,7 +36,7 @@ func NewNamespace(name string) (ns *Namespace) {
 // RegisterAbsolutePath constructs a complete path in the Namespace, with all required
 // structure instances to make the path immediately available and active
 func (m *Namespace) RegisterAbsolutePath(path AbsolutePath) error {
-	var currentElement *PathElement = m.root
+	var currentElement = m.root
 	var err error
 	for _, p := range path {
 		currentElement, err = currentElement.Add(p)
@@ -82,7 +82,7 @@ func (m *Namespace) FetchAllAbsolutePaths() (allpaths []AbsolutePath, err error)
 		return nil, err
 	}
 	for _, a := range all {
-		allpaths = append(allpaths, AbsolutePath(a))
+		allpaths = append(allpaths, a)
 	}
 	return allpaths, nil
 

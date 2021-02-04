@@ -47,7 +47,7 @@ func lockElementPrefix(t *testing.T) {
 		return
 	}
 	// grab the top-level element from our created path
-	firstElement := gns.FetchAbsolutePath(PathString("/path"))
+	firstElement := gns.FetchAbsolutePath("/path")
 	if !assert.NotNil(t, firstElement, "did not return first element in absolute path") {
 		t.Error("did not find registered path element")
 		return

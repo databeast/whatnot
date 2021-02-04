@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-var mutexTracing bool = true
+var mutexTracing = true
 
 // SmartMutex is a more extensive Mutex structure
 // with Deadlock-detection and metrics of lock aquisition queues
@@ -67,7 +67,8 @@ func (m *SmartMutex) SoftLock() {
 }
 
 func (m SmartMutex) Name() string {
-	return m.name
+	n := m.name
+	return n
 }
 
 func (m *SmartMutex) Locked() bool {
