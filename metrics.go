@@ -36,6 +36,6 @@ func decCurrentLock() {
 	currentLockCount.Dec()
 }
 
-func RegisterNameSpaceMetrics() {
+func registerNameSpaceMetrics() {
 
 }

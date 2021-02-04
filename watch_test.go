@@ -2,6 +2,7 @@ package whatnot
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -43,4 +44,35 @@ func createNewWatchOnElement(t *testing.T) {
 func changeElementAndNotify(t *testing.T) {
 	t.Log("testing that a notification is received when modifying a watched element")
 
+	t.Log("creating a new watch on existing path element")
+	const testNameSpace = "globaltest"
+	t.Log("Creating Namespace Manager")
+	manager = NewNamespaceManager()
+	gns := NewNamespace(testNameSpace)
+	err := manager.RegisterNamespace(gns)
+	if !assert.Nil(t, err, "RegisterNamespace returned error") {
+		return
+	}
+	testPathString := PathString("/path/to/test/data")
+	testpath := testPathString.ToAbsolutePath()
+	err = gns.RegisterAbsolutePath(testpath)
+	if !assert.Nil(t, err, "registerabsolute path returned error") {
+		t.Error(err.Error())
+		return
+	}
+
+	elem := gns.FetchAbsolutePath(testPathString)
+
+	sub := elem.SubscribeToEvents(false)
+
+	go func() {
+		time.Sleep(time.Second)
+		elem.Lock()
+	}()
+
+	select {
+	case e := <-sub.Events():
+		t.Log("recieved update event")
+		assert.Equal(t, elem, e.OnElement(), "watch event did not indicate original element")
+	}
 }
