@@ -61,7 +61,7 @@ func leaseExpiresAsExpected(t *testing.T) {
 		t.Error("did not expire in expected time")
 		return
 	}
-	t.Logf("took %f seconds to expire", took.Round(time.Second).Seconds())
+	t.Logf("took %f seconds to expire", took.Seconds())
 	return
 
 }
