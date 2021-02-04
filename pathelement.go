@@ -52,7 +52,7 @@ func (m *PathElement) ParentChain() (parents []*PathElement) {
 	}
 
 	for {
-		if nextParent.section == ROOT_ID {
+		if nextParent.section == rootId {
 			break
 		}
 		parents = append([]*PathElement{nextParent}, parents...) // prepend it into the list, to the items are in path order
@@ -180,7 +180,7 @@ func (m *PathElement) attach(elem *PathElement) (err error) {
 // creating all PathElements along the way
 func (m *PathElement) AppendRelativePath(subPath PathString) (*PathElement, error) {
 	// subpaths cannot be absolute, so they cannot start with the delimeter
-	if strings.HasPrefix(string(subPath), DELIMITER) {
+	if strings.HasPrefix(string(subPath), pathDelimeter) {
 		return nil, errors.Errorf("cannot use an absolute path as a subpath")
 	}
 
@@ -207,7 +207,7 @@ func (m *PathElement) subtractPathToSubPaths(path PathString) (newSubPath []SubP
 func (m *PathElement) FetchSubPath(subPath PathString) (*PathElement, error) {
 
 	// subpaths cannot be absolute, so they cannot start with the delimeter
-	if strings.HasPrefix(string(subPath), DELIMITER) {
+	if strings.HasPrefix(string(subPath), pathDelimeter) {
 		return nil, errors.Errorf("cannot use an absolute path as a subpath")
 	}
 

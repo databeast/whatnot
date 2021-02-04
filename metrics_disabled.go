@@ -1,4 +1,4 @@
-// +build -metrics
+// +build !metrics
 
 package whatnot
 

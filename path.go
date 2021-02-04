@@ -8,14 +8,16 @@ import (
 )
 
 const (
-	DELIMITER = "/"
-	ROOT_ID   = "[ROOT]"
+	pathDelimeter = "/"
+	rootId        = "[ROOT]"
 )
 
-// PathString is a string rppresentation of all or part of
-// a hierchical set of resources in a namespace
+// PathString is a string representation of all or part of
+// a hierarchical set of resources in a namespace
 type PathString string
 
+// SubPath is a path element identifier
+// akin to the directory names between path delimeters
 type SubPath string
 
 // AbsolutePath is the fully-qualified path to a single PathElement
@@ -29,12 +31,13 @@ type RelativePath []SubPath
 // ToAbsolutePath converts a PathString into an AbsolutePath
 // (a slice of ordered SubPath sections)
 func (m PathString) ToAbsolutePath() AbsolutePath {
-	if strings.HasPrefix(string(m), DELIMITER) == false {
-		return []SubPath{DELIMITER}
+	if strings.HasPrefix(string(m), pathDelimeter) == false {
+		return []SubPath{pathDelimeter}
 	}
 	return splitPath(m)
 }
 
+// ToRelativePath
 func (m PathString) ToRelativePath() RelativePath {
 	return splitPath(m)
 }
@@ -51,7 +54,7 @@ func (m AbsolutePath) SubtractPath(path AbsolutePath) PathString {
 }
 
 func splitPath(path PathString) (sections []SubPath) {
-	s := strings.Split(string(path), DELIMITER)
+	s := strings.Split(string(path), pathDelimeter)
 
 	// was this an absolute path, with a leading slash? if so, remove it
 	if len(s) > 0 {
@@ -73,7 +76,7 @@ func joinPath(sections []SubPath) (newPath PathString) {
 	for i, p := range sections {
 		strs[i] = string(p)
 	}
-	newPath = PathString(strings.Join(strs, DELIMITER))
+	newPath = PathString(strings.Join(strs, pathDelimeter))
 	return
 }
 
@@ -82,7 +85,7 @@ func joinPath(sections []SubPath) (newPath PathString) {
 // for a given Path Element
 func (m SubPath) Validate() error {
 	// hard rule for preventing insanity
-	if strings.Contains(string(m), DELIMITER) {
+	if strings.Contains(string(m), pathDelimeter) {
 		return errors.Errorf("refusing to access")
 	}
 	return nil

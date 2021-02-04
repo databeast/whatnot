@@ -24,7 +24,7 @@ func NewNamespace(name string) (ns *Namespace) {
 	}
 
 	ns.root = &PathElement{
-		section:      ROOT_ID,
+		section:      rootId,
 		mu:           mutex.New("Namespace Root Element mutex"),
 		subs:         make(map[SubPath]*PathElement),
 		subevents:    make(chan elementChange),
