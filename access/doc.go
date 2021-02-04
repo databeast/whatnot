@@ -1,5 +1,4 @@
 /*
-Identity Tracking for what users are using namespace resources
-
+Identity Tracking for what is accessing namespace resources
 */
 package access

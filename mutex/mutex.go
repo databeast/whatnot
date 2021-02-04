@@ -7,6 +7,12 @@ import (
 
 var mutexTracing bool = true
 
+// SmartMutex is a more extensive Mutex structure
+// with Deadlock-detection and metrics of lock aquisition queues
+// while most Mutexes in Go should be extremely localized in Scope
+// and retain locks for a minimal time
+// this Mutex structure is optimized for uses by a great many goroutines
+// from multiple code scopes
 type SmartMutex struct {
 	mu         Mutex
 	name       string
@@ -35,7 +41,11 @@ func (m *SmartMutex) releaseDeadlock() {
 	m.mu = Mutex{}
 }
 
-// test if object is locked, just to wait for changes to complete before proceeding
+// SoftLock is intended to test if object is locked, usually to wait
+// for a mutex'ed resource to stabilize
+// but then just to wait for changes to complete before proceeding
+// if you wish to make modifications during during the lock, call
+// Lock() and Unlock() explicitly.
 func (m *SmartMutex) SoftLock() {
 	m.statuslock.Lock()
 	status := m.locked
