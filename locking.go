@@ -69,18 +69,23 @@ func (r *resourceLock) unlock() {
 	r.selfmu.Unlock()
 }
 
-// Primary Path Element Locks
+// Lock places a Mutex on this pathElement
+// and sends a notification of this lock to its chain of parent elements
 func (m *PathElement) Lock() {
 	m.reslock.lock(false)
 	go func() { m.parentnotify <- elementChange{elem: m, change: LOCKED} }()
 }
 
+// UnLock will release the Mutex Lock on this path element
+// Note that it will NOT unlock mutexes on sub-element
+// unlocking will sent a notification event to the chain of parent elements
 func (m *PathElement) UnLock() {
-	//NOTE Subs will Remain Locked
+	//NOTE: Subs will Remain Locked when doing this.
 	m.reslock.unlock()
 	go func() { m.parentnotify <- elementChange{elem: m, change: UNLOCKED} }()
 }
 
+// LockSubs will lock this Path Element and every Path Element it is a parent to
 func (m *PathElement) LockSubs() {
 	// TODO:  Implement deadlock timeouts and recovery
 	lockwg := &sync.WaitGroup{}

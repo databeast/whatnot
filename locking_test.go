@@ -36,6 +36,26 @@ func lockSingleElement(t *testing.T) {
 
 func lockElementPrefix(t *testing.T) {
 	t.Log("creating an Absolute Path of Elements, locking the entire prefix")
+
+	gns := createTestNamespace(t)
+
+	testPathString := PathString("/path/to/test/data")
+	testpath := testPathString.ToAbsolutePath()
+	err := gns.RegisterAbsolutePath(testpath)
+	if !assert.Nil(t, err, "registerabsolute path returned error") {
+		t.Error(err.Error())
+		return
+	}
+	// grab the top-level element from our created path
+	firstElement := gns.FetchAbsolutePath(PathString("/path"))
+	if !assert.NotNil(t, firstElement, "did not return first element in absolute path") {
+		t.Error("did not find registered path element")
+		return
+	}
+	t.Log("Locking Path Element and children")
+	firstElement.LockSubs()
+	t.Log("Unlocking Path Element and children")
+	firstElement.UnLockSubs()
 }
 
 func lockandUnlockSingleElement(t *testing.T) {
