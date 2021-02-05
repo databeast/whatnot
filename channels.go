@@ -16,6 +16,8 @@ type EventMultiplexer struct {
 
 	lock *sync.Mutex
 
+	onElement *PathElement
+
 	connections map[chan<- WatchEvent]subscriberStats
 }
 
@@ -46,23 +48,41 @@ func (t *EventMultiplexer) Unregister(ch chan<- WatchEvent) {
 // Messages can be broadcast on this topic,
 // and registered consumers are guaranteed to either receive them, or
 // see a channel close.
-func newEventsMultiplexer() *EventMultiplexer {
+func (m *PathElement) newEventsMultiplexer() *EventMultiplexer {
+	if m.subscriberNotify != nil {
+		// simple reentrance
+		return m.subscriberNotify
+	}
+
+	var broadcast = make(chan WatchEvent, defaultMultiplexerBuffer)
 	t := &EventMultiplexer{
-		Broadcast:   make(chan WatchEvent, defaultMultiplexerBuffer),
+		Broadcast:   broadcast,
 		lock:        &sync.Mutex{},
+		onElement: m,
 		connections: make(map[chan<- WatchEvent]subscriberStats),
 	}
 
-	go t.run()
+	go t.run(broadcast)
 	return t
 }
 
+// BroadcastAsync has the multiplexer submit the WatchEvent
+// instead of the caller attaching directly to a channel
+// delivery is not guaranteed in this case and the goroutine
+// will eventually exit if it deadlocks
+func (t *EventMultiplexer) BroadcastAsync(evt WatchEvent) {
+	go func() {
+		t.Broadcast <- evt
+	} ()
+	// TODO: kill goroutine after max wait time
+}
+
 // run is the primary goroutine loop for each Multiplexer
-func (t *EventMultiplexer) run() {
-	for msg := range t.Broadcast {
+func (t *EventMultiplexer) run(broadcastchan <-chan WatchEvent) {
+	for msg := range broadcastchan {
 		func() {
-			t.lock.Lock()
-			for ch, _ := range t.connections {
+			//t.lock.Lock()
+			for ch := range t.connections {
 				select {
 				case ch <- msg:
 					// sends event to individual multiplexer subscriber
@@ -71,13 +91,13 @@ func (t *EventMultiplexer) run() {
 					close(ch)
 				}
 			}
-			t.lock.Unlock()
+			//t.lock.Unlock()
 		}()
 	}
 	// broadcast channel has been closed at this point
 	t.lock.Lock()
 	defer t.lock.Unlock()
-	for ch, _ := range t.connections {
+	for ch := range t.connections {
 		delete(t.connections, ch)
 		close(ch)
 	}
