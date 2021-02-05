@@ -21,3 +21,19 @@ func createTestNamespace(t *testing.T) *Namespace {
 	}
 	return gns
 }
+
+func createTestLogger(t *testing.T) Logger {
+	return testlogger{t: t}
+}
+
+type testlogger struct {
+	t *testing.T
+}
+
+func (t testlogger) Debug(msg string) {
+	t.t.Log(msg)
+}
+
+func (t testlogger) Info(msg string) {
+	t.t.Log(msg)
+}

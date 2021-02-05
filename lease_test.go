@@ -56,7 +56,7 @@ func leaseExpiresAsExpected(t *testing.T) {
 	start := time.Now()
 	<-ctx.Done()
 	t.Log("lease returned before time expired")
-	took :=  time.Now().Sub(start)
+	took := time.Now().Sub(start)
 	if !assert.Equal(t, leaseFor.Round(time.Second).Seconds(), took.Round(time.Second).Seconds(), "did not expire in expected time") {
 		t.Error("did not expire in expected time")
 		return

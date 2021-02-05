@@ -30,18 +30,18 @@ func (m *PathElement) unlockAfterExpire(ttl time.Duration) {
 
 	go func() {
 		select {
-			case <-m.reslock.deadline.Done():
-				if m.reslock.recursive {
-					unlockWg := &sync.WaitGroup{}
-					unlockWg.Add(1)
-					go m.asyncRecursiveUnLockSelfAndSubs(unlockWg)
-					unlockWg.Wait()
-					cancelFunc()
-				} else {
-					m.reslock.resmu.Unlock()
-					//defer cancelFunc()
-					cancelFunc()
-				}
+		case <-m.reslock.deadline.Done():
+			if m.reslock.recursive {
+				unlockWg := &sync.WaitGroup{}
+				unlockWg.Add(1)
+				go m.asyncRecursiveUnLockSelfAndSubs(unlockWg)
+				unlockWg.Wait()
+				cancelFunc()
+			} else {
+				m.reslock.resmu.Unlock()
+				//defer cancelFunc()
+				cancelFunc()
+			}
 		}
 
 	}()

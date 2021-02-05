@@ -34,6 +34,7 @@ func (m *NameSpaceManager) RegisterNamespace(ns *Namespace) error {
 	m.mu.Lock()
 	m.namespaces[ns.name] = ns
 	m.mu.Unlock()
+	m.log.Info(fmt.Sprintf("registered new namespace %q", ns.name))
 
 	return nil
 }
@@ -79,12 +80,29 @@ const (
 	optionDiscoverGossip optionName = "gossip cluster discovery"
 	optionSyncRaft       optionName = "raft cluster synchronization"
 	optionTrace          optionName = "trace mutex locks"
-	optionBreak          optionName = "break mutext deadlocking"
+	optionBreak          optionName = "break mutex deadlocking"
 	optionAcls           optionName = "enable element permissions"
 )
 
 type ManagerOption func() optionName
 
-var EnableSync = func() optionName {
-	return "cluster synchronization"
+var WithGossip = func() optionName {
+	return optionDiscoverGossip
 }
+
+var WithRaft = func() optionName {
+	return optionSyncRaft
+}
+
+var WithTrace = func() optionName {
+	return optionTrace
+}
+
+var WithDeadlockBreak = func() optionName {
+	return optionBreak
+}
+
+var WithAcls = func() optionName {
+	return optionAcls
+}
+
