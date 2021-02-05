@@ -48,10 +48,9 @@ func changeElementAndNotify(t *testing.T) {
 	}
 
 	elem := gns.FetchAbsolutePath(testPathString)
-	parentelem := elem.Parent()
 
 	t.Log("Creating a subscription to change notifications on the test element")
-	sub := parentelem.SubscribeToEvents(false)
+	sub := elem.SubscribeToEvents(false)
 
 	go func() {
 		t.Log("waiting 1 second for notifier channel to attach")

@@ -31,6 +31,9 @@ type PathElement struct {
 	// children of this Path Elements
 	subevents chan elementChange
 
+	// channel for events directly on this element itself
+	events chan elementChange
+
 	// Channel Multiplexer for sending watch events to things subscribed
 	// to events on this Path Element or any of its children
 	subscriberNotify *EventMultiplexer

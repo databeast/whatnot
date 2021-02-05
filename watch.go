@@ -107,7 +107,7 @@ func (m *ElementWatchSubscription) Events() <-chan WatchEvent {
 
 type nothing struct{}
 
-// Topic is a pub-sub mechanism where consumers can Register to
+// EventMultiplexer is a pub-sub mechanism where consumers can Register to
 // receive messages sent to Broadcast.
 type EventMultiplexer struct {
 	// Producer sends messages on this channel. Close the channel
@@ -118,7 +118,8 @@ type EventMultiplexer struct {
 	connections map[chan<- WatchEvent]nothing
 }
 
-// New creates a new topic. Messages can be broadcast on this topic,
+// newEventsMultiplexer creates a new event multiplexer
+// Messages can be broadcast on this topic,
 // and registered consumers are guaranteed to either receive them, or
 // see a channel close.
 func newEventsMultiplexer() *EventMultiplexer {

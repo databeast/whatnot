@@ -80,6 +80,12 @@ func (m *PathElement) Lock() {
 		default:
 			// nobody was listening
 	}
+	select {
+	case m.events <- elementChange{elem: m, change: LOCKED}:
+		// notification was sent
+	default:
+		// nobody was listening
+	}
 }
 
 // UnLock will release the Mutex Lock on this path element
