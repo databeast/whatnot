@@ -16,13 +16,9 @@ func createNewWatchOnElement(t *testing.T) {
 	t.Log("creating a new watch on existing path element")
 
 	gns := createTestNamespace(t)
-	err := manager.RegisterNamespace(gns)
-	if !assert.Nil(t, err, "RegisterNamespace returned error") {
-		return
-	}
 	testPathString := PathString("/path/to/test/data")
 	testpath := testPathString.ToAbsolutePath()
-	err = gns.RegisterAbsolutePath(testpath)
+	err := gns.RegisterAbsolutePath(testpath)
 	if !assert.Nil(t, err, "registerabsolute path returned error") {
 		t.Error(err.Error())
 		return
