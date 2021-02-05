@@ -63,6 +63,7 @@ func (r *resourceLock) unlock() {
 	r.selfmu.Lock()
 	if r.islocked == false {
 		namespaceLogging.Info("ignoring call to unlock already unlocked reslock")
+		r.resmu.Unlock()
 		return
 	}
 	r.resmu.Unlock()
