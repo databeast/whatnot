@@ -13,14 +13,17 @@ import (
 type PathElement struct {
 	// the individual name of this Path Element
 	section SubPath
+
 	// The parent Path Element
 	parent *PathElement
+
 	// channel to notify parent element of changes to this element
 	// or any of its sub-elements
 	parentnotify chan elementChange
 	mu           *mutex.SmartMutex
 	reslock      resourceLock
 	val          ElementValue
+
 	// sub Path-elements directly beneath this Path Elements
 	subs map[SubPath]*PathElement
 

@@ -74,7 +74,14 @@ func (r *resourceLock) unlock() {
 // and sends a notification of this lock to its chain of parent elements
 func (m *PathElement) Lock() {
 	m.reslock.lock(false)
-	go func() { m.parentnotify <- elementChange{elem: m, change: LOCKED} }()
+	go func() {
+		select {
+		case m.parentnotify <- elementChange{elem: m, change: LOCKED}:
+			// notification was sent
+		default:
+			// nobody was listening
+		}
+	}()
 }
 
 // UnLock will release the Mutex Lock on this path element
@@ -83,7 +90,14 @@ func (m *PathElement) Lock() {
 func (m *PathElement) UnLock() {
 	//NOTE: Subs will Remain Locked when doing this.
 	m.reslock.unlock()
-	go func() { m.parentnotify <- elementChange{elem: m, change: UNLOCKED} }()
+	go func() {
+		select {
+			case m.parentnotify <- elementChange{elem: m, change: UNLOCKED}:
+				// nofitication has been sent
+			default:
+				// nobody was listening
+		}
+	}()
 }
 
 // LockSubs will lock this Path Element and every Path Element it is a parent to
@@ -93,7 +107,14 @@ func (m *PathElement) LockSubs() {
 	lockwg.Add(1)
 	m.asyncRecursiveLockSelfAndSubs(lockwg)
 	lockwg.Wait()
-	go func() { m.parentnotify <- elementChange{elem: m, change: LOCKED} }()
+	go func() {
+		select {
+			case m.parentnotify <- elementChange{elem: m, change: LOCKED}:
+				// notification has been sent
+			default:
+				// nobody is listening
+		}
+	}()
 }
 
 func (m *PathElement) UnLockSubs() {
@@ -102,7 +123,14 @@ func (m *PathElement) UnLockSubs() {
 	unlockwg.Add(1)
 	m.asyncRecursiveUnLockSelfAndSubs(unlockwg)
 	unlockwg.Wait()
-	go func() { m.parentnotify <- elementChange{elem: m, change: UNLOCKED} }()
+	go func() {
+		select {
+			case m.parentnotify <- elementChange{elem: m, change: UNLOCKED}:
+				// notification has been sent
+			default:
+				// nobody is listening
+		}
+	}()
 }
 
 func (m *PathElement) asyncRecursiveLockSelfAndSubs(parentwg *sync.WaitGroup) {

@@ -11,3 +11,9 @@ type Logger interface {
 func (m Namespace) log() {
 
 }
+
+type nilLogger struct {}
+
+func (n nilLogger) Debug(msg string) {}
+
+func (n nilLogger) Info(msg string) {}

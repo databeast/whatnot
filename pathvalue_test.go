@@ -2,6 +2,7 @@ package whatnot
 
 import (
 	"testing"
+	"time"
 
 	"github.com/databeast/whatnot/access"
 	"github.com/stretchr/testify/assert"
@@ -24,6 +25,7 @@ func setAndRetrieveValueOnElement(t *testing.T) {
 		t.Error("couldnt fetch test path element")
 		return
 	}
+	time.Sleep(time.Second)
 	elem.SetValue(ElementValue{Val: "test value"}, ADDED, access.Role{})
 	val := elem.GetValue()
 	assert.Equal(t, ElementValue{Val: "test value"}, val, "retrieved value did not match original value")

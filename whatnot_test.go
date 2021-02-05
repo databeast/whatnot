@@ -12,7 +12,7 @@ const (
 
 func createTestNamespace(t *testing.T) *Namespace {
 	t.Log("Creating Namespace Manager")
-	manager = NewNamespaceManager()
+	manager = NewNamespaceManager().WithLogger(createTestLogger(t))
 	gns := NewNamespace(testNameSpace)
 	err := manager.RegisterNamespace(gns)
 	if !assert.Nil(t, err, "RegisterNamespace returned error") {

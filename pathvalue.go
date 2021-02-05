@@ -13,7 +13,14 @@ func (m *PathElement) SetValue(value ElementValue, change changeType, actor acce
 	m.mu.Lock()
 	m.val = value
 	m.mu.Unlock()
-	m.parentnotify <- elementChange{elem: m, change: change, actor: actor} // should this be a blocking operation?
+
+	select {
+		case m.parentnotify <- elementChange{elem: m, change: change, actor: actor}:
+			// event has been sent to an active listern
+		default:
+			// nothing was listening to recieve the notification
+	}
+
 }
 
 func (m *PathElement) GetValue() (value ElementValue) {
