@@ -1,7 +1,6 @@
 package whatnot
 
 import (
-	"sync"
 	"time"
 
 	"github.com/databeast/whatnot/access"
@@ -75,24 +74,34 @@ func (m *PathElement) watchChildren() {
 		var e elementChange
 		for {
 			select {
+			// process events from our children
 			case e = <-m.subevents:
-				// first pass the message on
 				if e.elem == nil {
-					panic("elementChange subevent passed with nil PathElement")
+					panic("elementChange event passed with nil PathElement")
 				}
-				pe := e // clone our event to send upwards, make the data race analyzer happy
-				go func() { m.parentnotify <- pe }()
-				// then do what we need to do with the event ourselves now
-				m.logChange(e)
 
-				// Broadcast the change out to all subscribers
-				m.subscriberNotify.Broadcast <- WatchEvent{
-					elem:   e.elem,
-					TS:     time.Now(),
-					Note:   "",
-					Change: e.change,
-					Actor:  e.actor,
+			// process events from ourself
+			case e = <-m.selfevents:
+				if e.elem == nil {
+					panic("elementChange event passed with nil PathElement")
 				}
+			}
+
+			if e.elem == nil {
+				panic("elementChange event passed with nil PathElement")
+			}
+			pe := e // clone our event to send upwards, make the data race analyzer happy
+			go func() { m.parentnotify <- pe }()
+			// then do what we need to do with the event ourselves now
+			m.logChange(e)
+
+			// Broadcast the change out to all subscribers
+			m.subscriberNotify.Broadcast <- WatchEvent{
+				elem:   e.elem,
+				TS:     time.Now(),
+				Note:   "",
+				Change: e.change,
+				Actor:  e.actor,
 			}
 			// TODO: needs close handler
 		}
@@ -105,78 +114,11 @@ func (m *ElementWatchSubscription) Events() <-chan WatchEvent {
 	return m.events
 }
 
-type nothing struct{}
+type subscriberStats struct{}
 
-// EventMultiplexer is a pub-sub mechanism where consumers can Register to
-// receive messages sent to Broadcast.
-type EventMultiplexer struct {
-	// Producer sends messages on this channel. Close the channel
-	// to shutdown the topic.
-	Broadcast chan<- WatchEvent
-
-	lock        sync.Mutex
-	connections map[chan<- WatchEvent]nothing
-}
-
-// newEventsMultiplexer creates a new event multiplexer
-// Messages can be broadcast on this topic,
-// and registered consumers are guaranteed to either receive them, or
-// see a channel close.
-func newEventsMultiplexer() *EventMultiplexer {
-	t := &EventMultiplexer{}
-	broadcast := make(chan WatchEvent, 100)
-	t.Broadcast = broadcast
-	t.connections = make(map[chan<- WatchEvent]nothing)
-	go t.run(broadcast)
-	return t
-}
-
-func (t *EventMultiplexer) run(broadcast <-chan WatchEvent) {
-	for msg := range broadcast {
-		func() {
-			t.lock.Lock()
-			defer t.lock.Unlock()
-			for ch, _ := range t.connections {
-				select {
-				case ch <- msg:
-				default:
-					delete(t.connections, ch)
-					close(ch)
-				}
-			}
-		}()
-	}
-
-	t.lock.Lock()
-	defer t.lock.Unlock()
-	for ch, _ := range t.connections {
-		delete(t.connections, ch)
-		close(ch)
-	}
-}
-
-// Register starts receiving messages on the given channel. If a
-// channel close is seen, either the topic has been shut down, or the
-// consumer was too slow, and should re-register.
-func (t *EventMultiplexer) Register(ch chan<- WatchEvent) {
-	t.lock.Lock()
-	defer t.lock.Unlock()
-	t.connections[ch] = nothing{}
-}
-
-// Unregister stops receiving messages on this channel.
-func (t *EventMultiplexer) Unregister(ch chan<- WatchEvent) {
-	t.lock.Lock()
-	defer t.lock.Unlock()
-
-	// double-close is not safe, so make sure we didn't already
-	// drop this consumer as too slow
-	_, ok := t.connections[ch]
-	if ok {
-		delete(t.connections, ch)
-		close(ch)
-	}
-}
+const (
+	defaultMultiplexerBuffer = 100
+)
 
 // client creates a channel
 // client registers channel with Topic

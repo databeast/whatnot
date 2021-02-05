@@ -47,9 +47,11 @@ func changeElementAndNotify(t *testing.T) {
 		return
 	}
 
-	elem := gns.FetchAbsolutePath(testPathString)
-
 	t.Log("Creating a subscription to change notifications on the test element")
+	elem := gns.FetchAbsolutePath(testPathString)
+	//paren  := elem.Parent()
+
+	// self-notification still broken - check the parent instead
 	sub := elem.SubscribeToEvents(false)
 
 	go func() {

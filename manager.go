@@ -20,7 +20,7 @@ func NewNamespaceManager(opts ...ManagerOption) *NameSpaceManager {
 	return &NameSpaceManager{
 		mu:         mutex.New(fmt.Sprintf("NameSpace Manager mutex")),
 		namespaces: make(map[string]*Namespace),
-		log: nilLogger{},
+		log:        nilLogger{},
 	}
 }
 
@@ -106,4 +106,3 @@ var WithDeadlockBreak = func() optionName {
 var WithAcls = func() optionName {
 	return optionAcls
 }
-

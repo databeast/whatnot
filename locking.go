@@ -75,13 +75,13 @@ func (r *resourceLock) unlock() {
 func (m *PathElement) Lock() {
 	m.reslock.lock(false)
 	select {
-		case m.parentnotify <- elementChange{elem: m, change: LOCKED}:
-			// notification was sent
-		default:
-			// nobody was listening
+	case m.parentnotify <- elementChange{elem: m, change: LOCKED}:
+		// notification was sent
+	default:
+		// nobody was listening
 	}
 	select {
-	case m.events <- elementChange{elem: m, change: LOCKED}:
+	case m.selfevents <- elementChange{elem: m, change: LOCKED}:
 		// notification was sent
 	default:
 		// nobody was listening
@@ -96,10 +96,10 @@ func (m *PathElement) UnLock() {
 	m.reslock.unlock()
 	go func() {
 		select {
-			case m.parentnotify <- elementChange{elem: m, change: UNLOCKED}:
-				// nofitication has been sent
-			default:
-				// nobody was listening
+		case m.parentnotify <- elementChange{elem: m, change: UNLOCKED}:
+			// nofitication has been sent
+		default:
+			// nobody was listening
 		}
 	}()
 }
@@ -113,10 +113,10 @@ func (m *PathElement) LockSubs() {
 	lockwg.Wait()
 	go func() {
 		select {
-			case m.parentnotify <- elementChange{elem: m, change: LOCKED}:
-				// notification has been sent
-			default:
-				// nobody is listening
+		case m.parentnotify <- elementChange{elem: m, change: LOCKED}:
+			// notification has been sent
+		default:
+			// nobody is listening
 		}
 	}()
 }
@@ -129,10 +129,10 @@ func (m *PathElement) UnLockSubs() {
 	unlockwg.Wait()
 	go func() {
 		select {
-			case m.parentnotify <- elementChange{elem: m, change: UNLOCKED}:
-				// notification has been sent
-			default:
-				// nobody is listening
+		case m.parentnotify <- elementChange{elem: m, change: UNLOCKED}:
+			// notification has been sent
+		default:
+			// nobody is listening
 		}
 	}()
 }

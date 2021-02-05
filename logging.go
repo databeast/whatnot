@@ -12,7 +12,7 @@ func (m Namespace) log() {
 
 }
 
-type nilLogger struct {}
+type nilLogger struct{}
 
 func (n nilLogger) Debug(msg string) {}
 

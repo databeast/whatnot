@@ -32,10 +32,10 @@ type PathElement struct {
 	subevents chan elementChange
 
 	// channel for events directly on this element itself
-	events chan elementChange
+	selfevents chan elementChange
 
-	// Channel Multiplexer for sending watch events to things subscribed
-	// to events on this Path Element or any of its children
+	// Channel Multiplexer for sending watch events to watch
+	//subscriptions on this Path Element or any of its children
 	subscriberNotify *EventMultiplexer
 }
 
@@ -94,7 +94,7 @@ func (m PathElement) fetchSubElement(path SubPath) *PathElement {
 func (m PathElement) logChange(e elementChange) {
 	switch e.change {
 	default:
-		// nothing for now - placeholder for later audit logging
+		// subscriberStats for now - placeholder for later audit logging
 	}
 
 }
