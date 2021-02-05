@@ -27,5 +27,5 @@ func (m *PathElement) GetValue() (value ElementValue) {
 	if m == nil {
 		panic("GetValue called on nil PathElement")
 	}
-	return value
+	return m.val
 }
