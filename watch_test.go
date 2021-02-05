@@ -8,7 +8,7 @@ import (
 )
 
 func TestWatchNotifications(t *testing.T) {
-	//t.Run("Create new watch subscription on PathElement", createNewWatchOnElement)
+	t.Run("Create new watch subscription on PathElement", createNewWatchOnElement)
 	t.Run("changing a path element creates notification", changeElementAndNotify)
 }
 
