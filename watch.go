@@ -60,7 +60,7 @@ func (m *PathElement) SubscribeToEvents(prefix bool) *ElementWatchSubscription {
 		isRecursive: prefix,
 	}
 
-	m.subscriberNotify.Register(sub.events) // this is the part that will allow us to recieve channel messages
+	m.subscriberNotify.Register(sub.events) // this is the part that will allow us to receive channel messages
 
 	return sub
 }

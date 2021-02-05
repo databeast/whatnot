@@ -74,14 +74,12 @@ func (r *resourceLock) unlock() {
 // and sends a notification of this lock to its chain of parent elements
 func (m *PathElement) Lock() {
 	m.reslock.lock(false)
-	go func() {
-		select {
+	select {
 		case m.parentnotify <- elementChange{elem: m, change: LOCKED}:
 			// notification was sent
 		default:
 			// nobody was listening
-		}
-	}()
+	}
 }
 
 // UnLock will release the Mutex Lock on this path element

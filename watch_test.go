@@ -52,9 +52,10 @@ func changeElementAndNotify(t *testing.T) {
 	}
 
 	elem := gns.FetchAbsolutePath(testPathString)
+	parentelem := elem.Parent()
 
 	t.Log("Creating a subscription to change notifications on the test element")
-	sub := elem.SubscribeToEvents(false)
+	sub := parentelem.SubscribeToEvents(false)
 
 	go func() {
 		t.Log("waiting 1 second for notifier channel to attach")
@@ -63,11 +64,9 @@ func changeElementAndNotify(t *testing.T) {
 		elem.Lock()
 	}()
 
-	<-sub.Events()
+	e := <-sub.Events()
 
 	t.Log("received update event")
-	//assert.Equal(t, elem, e.OnElement(), "watch event did not indicate original element")
-	//default:
-	//	t.Error("no notification received")
+	assert.Equal(t, elem, e.OnElement(), "watch event did not indicate original element")
 
 }
