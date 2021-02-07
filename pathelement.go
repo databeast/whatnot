@@ -11,21 +11,21 @@ import (
 
 // PathElement is an individual section of a complete path
 type PathElement struct {
+	// internal mutex for synchronizing modifications to this structure itself
+	mu *mutex.SmartMutex
+
 	// the individual name of this Path Element
 	section SubPath
 
 	// The parent Path Element
 	parent *PathElement
 
+	// sub Path-elements directly beneath this PathElement
+	children map[SubPath]*PathElement
+
 	// channel to notify parent element of changes to this element
 	// or any of its sub-elements
 	parentnotify chan elementChange
-	mu           *mutex.SmartMutex
-	reslock      resourceLock
-	val          ElementValue
-
-	// sub Path-elements directly beneath this Path Elements
-	subs map[SubPath]*PathElement
 
 	// channel for incoming change notifications from any of the
 	// children of this Path Elements
@@ -34,12 +34,21 @@ type PathElement struct {
 	// channel for events directly on this element itself
 	selfevents chan elementChange
 
-	// Channel Multiplexer for sending watch events to watch
-	//subscriptions on this Path Element or any of its children
+	// reslock is the mutex-like structure governing the leasable lock
+	// on the resources represented by this Path Element
+	reslock resourceLock
+
+	// additional keyval data attached to this pathelement
+	resval ElementValue
+
+	// Channel Multiplexer for sending watch events to subscriptions
+	// on this Path Element or any of its children
 	subscriberNotify *EventMultiplexer
 }
 
 // SubPath returns the name of this Path Element
+// without the parent section of the path
+// eg the 'file' portion of the path
 func (m *PathElement) SubPath() (path SubPath) {
 	return m.section
 }
@@ -49,6 +58,10 @@ func (m *PathElement) Parent() *PathElement {
 	return m.parent
 }
 
+// ParentChain returns a slice of this Path Elements
+// parent Pathelements, in order of parentage
+// i.e, the first item is this elements immediate parent
+// the last item is always the top-level (leftmost) pathelement
 func (m *PathElement) ParentChain() (parents []*PathElement) {
 	var nextParent *PathElement
 	if m.parent == nil {
@@ -58,6 +71,7 @@ func (m *PathElement) ParentChain() (parents []*PathElement) {
 	}
 
 	for {
+		// dont return the root node
 		if nextParent.section == rootId {
 			break
 		}
@@ -83,7 +97,7 @@ func (m *PathElement) AbsolutePath() (path AbsolutePath) {
 // fetchSubElement fetches named sub element, if it exists
 // returns nil if no sub element by that name exists
 func (m PathElement) fetchSubElement(path SubPath) *PathElement {
-	sub, ok := m.subs[path]
+	sub, ok := m.children[path]
 	if ok {
 		return sub
 	} else {
@@ -93,7 +107,12 @@ func (m PathElement) fetchSubElement(path SubPath) *PathElement {
 
 func (m PathElement) logChange(e elementChange) {
 	switch e.change {
-	default:
+	case ChangeAdded:
+	case ChangeEdited:
+	case ChangeLocked:
+	case ChangeUnlocked:
+	case ChangeDeleted:
+	case ChangeUnknown:
 		// subscriberStats for now - placeholder for later audit logging
 	}
 
@@ -142,26 +161,32 @@ func (m *PathElement) Add(path SubPath) (elem *PathElement, err error) {
 
 	m.mu.Lock()
 
-	if v, ok := m.subs[path]; ok { // element already exists, do not overwrite
+	if v, ok := m.children[path]; ok {
+		// be safely re-entry - element already exists, do not overwrite
 		elem = v
-	} else {
-		elem = &PathElement{
-			section:          path,
-			parent:           m,
-			parentnotify:     m.subevents,
-			mu:               mutex.New(fmt.Sprintf("internal mutex for %s", path)),
-			subs:             make(map[SubPath]*PathElement),
-			subevents:        make(chan elementChange),
-			subscriberNotify: m.newEventsMultiplexer(),
-		}
-		m.subs[path] = elem
-		elem.reslock = resourceLock{
-			selfmu:    &sync.Mutex{},
-			resmu:     &sync.Mutex{},
-			recursive: false,
-		}
+		m.mu.Unlock()
+		return elem, nil
 	}
-	elem.watchChildren() // start the signal handler going
+
+	elem = &PathElement{
+		section:      path,
+		parent:       m,
+		parentnotify: m.subevents,
+		mu:           mutex.New(fmt.Sprintf("internal mutex for %s", path)),
+		children:     make(map[SubPath]*PathElement),
+		subevents:    make(chan elementChange),
+	}
+	m.children[path] = elem
+	elem.reslock = resourceLock{
+		selfmu:    &sync.Mutex{},
+		resmu:     &sync.Mutex{},
+		recursive: false,
+	}
+	// begin the broadcaster for watch subscriptions to function
+	m.initEventBroadcast()
+
+	// start reading incoming events from child elements
+	elem.watchChildren()
 
 	m.mu.Unlock()
 	return elem, nil
@@ -171,12 +196,12 @@ func (m *PathElement) Add(path SubPath) (elem *PathElement, err error) {
 func (m *PathElement) attach(elem *PathElement) (err error) {
 
 	// check this is a properly formed element
-	if elem.subs == nil {
-		elem.subs = make(map[SubPath]*PathElement)
+	if elem.children == nil {
+		elem.children = make(map[SubPath]*PathElement)
 	}
 
 	m.mu.Lock()
-	m.subs[elem.SubPath()] = elem
+	m.children[elem.SubPath()] = elem
 	m.mu.Unlock()
 
 	return nil
@@ -232,7 +257,7 @@ func (m *PathElement) FetchSubPath(subPath PathString) (*PathElement, error) {
 // FetchAllSubPaths returns the SubPath location of all descendent PathElements
 // underneath this PathElement
 func (m *PathElement) FetchAllSubPaths() (allpaths [][]SubPath, err error) {
-	for _, s := range m.subs {
+	for _, s := range m.children {
 		elempaths := [][]SubPath{} // all Normalized SubPaths of this Element
 
 		elemsubs, err := s.FetchAllSubPaths()

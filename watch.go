@@ -9,12 +9,12 @@ import (
 type changeType int
 
 const (
-	UNKNOWN  changeType = 0
-	LOCKED   changeType = 1
-	UNLOCKED changeType = 2
-	ADDED    changeType = 3
-	EDITED   changeType = 4
-	DELETED  changeType = 5
+	ChangeUnknown changeType = iota + 1
+	ChangeLocked
+	ChangeUnlocked
+	ChangeAdded
+	ChangeEdited
+	ChangeDeleted
 )
 
 // elementChange is a notification channel structure
@@ -68,7 +68,9 @@ func (m *PathElement) UnSubscribeFromEvents() error {
 	return nil
 }
 
-// Each PathElement gets its own goroutine to handle event channels
+// watchChildren is a PathElement-specific goroutine to handle event channels
+// in default mode, this means that goroutine load scales 1-to-1 with total
+// number of distinct pathelements
 func (m *PathElement) watchChildren() {
 	go func() {
 		var e elementChange

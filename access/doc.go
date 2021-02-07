@@ -1,4 +1,5 @@
 /*
-Identity Tracking for what is accessing namespace resources
+Identity Tracking and optional Permissions management
+for managing and restricting namespace resources
 */
 package access

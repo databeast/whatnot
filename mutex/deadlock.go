@@ -147,6 +147,7 @@ func lock(lockFn func(), ptr interface{}) {
 	if Opts.DeadlockTimeout <= 0 {
 		lockFn()
 	} else {
+		// Begin goroutine to monitor potential Deadlock state
 		ch := make(chan struct{})
 		go func() {
 			for {

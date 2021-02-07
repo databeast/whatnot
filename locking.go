@@ -76,13 +76,13 @@ func (r *resourceLock) unlock() {
 func (m *PathElement) Lock() {
 	m.reslock.lock(false)
 	select {
-	case m.parentnotify <- elementChange{elem: m, change: LOCKED}:
+	case m.parentnotify <- elementChange{elem: m, change: ChangeLocked}:
 		// notification was sent
 	default:
 		// nobody was listening
 	}
 	select {
-	case m.selfevents <- elementChange{elem: m, change: LOCKED}:
+	case m.selfevents <- elementChange{elem: m, change: ChangeLocked}:
 		// notification was sent
 	default:
 		// nobody was listening
@@ -97,7 +97,7 @@ func (m *PathElement) UnLock() {
 	m.reslock.unlock()
 	go func() {
 		select {
-		case m.parentnotify <- elementChange{elem: m, change: UNLOCKED}:
+		case m.parentnotify <- elementChange{elem: m, change: ChangeUnlocked}:
 			// nofitication has been sent
 		default:
 			// nobody was listening
@@ -114,7 +114,7 @@ func (m *PathElement) LockSubs() {
 	lockwg.Wait()
 	go func() {
 		select {
-		case m.parentnotify <- elementChange{elem: m, change: LOCKED}:
+		case m.parentnotify <- elementChange{elem: m, change: ChangeLocked}:
 			// notification has been sent
 		default:
 			// nobody is listening
@@ -130,7 +130,7 @@ func (m *PathElement) UnLockSubs() {
 	unlockwg.Wait()
 	go func() {
 		select {
-		case m.parentnotify <- elementChange{elem: m, change: UNLOCKED}:
+		case m.parentnotify <- elementChange{elem: m, change: ChangeUnlocked}:
 			// notification has been sent
 		default:
 			// nobody is listening
@@ -141,11 +141,11 @@ func (m *PathElement) UnLockSubs() {
 func (m *PathElement) asyncRecursiveLockSelfAndSubs(parentwg *sync.WaitGroup) {
 	m.reslock.lock(true) // reslock myself first
 
-	if len(m.subs) > 0 {
+	if len(m.children) > 0 {
 		subLockWg := &sync.WaitGroup{}
-		subLockWg.Add(len(m.subs)) // always increment the waitgroup delta before allowing anything to start
+		subLockWg.Add(len(m.children)) // always increment the waitgroup delta before allowing anything to start
 
-		for _, v := range m.subs {
+		for _, v := range m.children {
 			go v.asyncRecursiveLockSelfAndSubs(subLockWg)
 		}
 		subLockWg.Wait()
@@ -157,11 +157,11 @@ func (m *PathElement) asyncRecursiveUnLockSelfAndSubs(parentwg *sync.WaitGroup) 
 
 	m.reslock.unlock() // unlock myself first
 
-	if len(m.subs) > 0 {
+	if len(m.children) > 0 {
 		subUnlockwg := &sync.WaitGroup{}
-		subUnlockwg.Add(len(m.subs)) // always increment the waitgroup delta before allowing anything to start
+		subUnlockwg.Add(len(m.children)) // always increment the waitgroup delta before allowing anything to start
 
-		for _, v := range m.subs {
+		for _, v := range m.children {
 			go v.asyncRecursiveUnLockSelfAndSubs(subUnlockwg)
 		}
 	}

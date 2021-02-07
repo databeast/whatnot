@@ -17,6 +17,7 @@ type NameSpaceManager struct {
 // NewNamespaceManager create a top-level namespace manager, to contain multiple subscribable namespaces
 // you probably only want to call this once, to initialize WhatNot, but who am I to tell you what your use cases are
 func NewNamespaceManager(opts ...ManagerOption) *NameSpaceManager {
+	registerNameSpaceMetrics()
 	return &NameSpaceManager{
 		mu:         mutex.New(fmt.Sprintf("NameSpace Manager mutex")),
 		namespaces: make(map[string]*Namespace),
@@ -83,6 +84,7 @@ const (
 	optionTrace          optionName = "trace mutex locks"
 	optionBreak          optionName = "break mutex deadlocking"
 	optionAcls           optionName = "enable element permissions"
+	optionRateLimit      optionName = "lease rate limiting"
 )
 
 type ManagerOption func() optionName

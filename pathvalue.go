@@ -11,7 +11,7 @@ func (m *PathElement) SetValue(value ElementValue, change changeType, actor acce
 		panic("SetValue called on nil PathElement")
 	}
 	m.mu.Lock()
-	m.val = value
+	m.resval = value
 	m.mu.Unlock()
 
 	select {
@@ -27,5 +27,5 @@ func (m *PathElement) GetValue() (value ElementValue) {
 	if m == nil {
 		panic("GetValue called on nil PathElement")
 	}
-	return m.val
+	return m.resval
 }

@@ -26,7 +26,7 @@ func setAndRetrieveValueOnElement(t *testing.T) {
 		return
 	}
 	time.Sleep(time.Second)
-	elem.SetValue(ElementValue{Val: "test value"}, ADDED, access.Role{})
+	elem.SetValue(ElementValue{Val: "test value"}, ChangeAdded, access.Role{})
 	val := elem.GetValue()
 	assert.Equal(t, ElementValue{Val: "test value"}, val, "retrieved value did not match original value")
 }
