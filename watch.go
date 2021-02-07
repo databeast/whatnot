@@ -50,6 +50,10 @@ type WatchEvent struct {
 func (e WatchEvent) OnElement() *PathElement {
 	return e.elem
 }
+
+// SubscribeToEvents generates a Watch Subscription that produces a single channel
+// of notification events on the accompanying Path Element, and optionally all of its
+// child path elements
 func (m *PathElement) SubscribeToEvents(prefix bool) *ElementWatchSubscription {
 	sub := &ElementWatchSubscription{
 		onElement:   m,
@@ -57,12 +61,12 @@ func (m *PathElement) SubscribeToEvents(prefix bool) *ElementWatchSubscription {
 		isRecursive: prefix,
 	}
 
-	m.subscriberNotify.Register(sub.events) // this is the part that will allow us to receive channel messages
+	m.subscriberNotify.Register(sub.events, prefix) // this is the part that will allow us to receive channel messages
 
 	return sub
 }
 
-// UnSubscribeFromEvents will unregister the notification channel
+// UnSubscrulibeFromEvents will unregister the notification channel
 // and then nil out the watch subscription that is passed to it
 func (m *PathElement) UnSubscribeFromEvents(sub *ElementWatchSubscription) {
 	m.subscriberNotify.Unregister(sub.events)
@@ -77,17 +81,10 @@ func (m *PathElement) watchChildren() {
 		var e elementChange
 		for {
 			select {
-			// process events from our children
 			case e = <-m.subevents:
-				if e.elem == nil {
-					panic("elementChange event passed with nil PathElement")
-				}
-
-			// process events from ourself
+				// process events from our children
 			case e = <-m.selfevents:
-				if e.elem == nil {
-					panic("elementChange event passed with nil PathElement")
-				}
+				// process events from ourself
 			}
 
 			if e.elem == nil {
@@ -119,16 +116,3 @@ func (m *ElementWatchSubscription) Events() <-chan WatchEvent {
 
 type subscriberStats struct{}
 
-const (
-	defaultMultiplexerBuffer = 100
-)
-
-// client creates a channel
-// client registers channel with Topic
-// client recieves messages over that channel
-
-func (m *Namespace) WatchEventsOnPath() {
-
-	// find Topic for
-
-}

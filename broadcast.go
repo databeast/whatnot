@@ -8,9 +8,16 @@ Whatnot depends on multiple subscribers to a notification channel
 The following is an implementation of GO channel multiplexing
 */
 
+const (
+	defaultMultiplexerBuffer = 100
+)
+
+
+
 // EventMultiplexer is a pub-sub mechanism where consumers can Register to
 // receive messages sent to Broadcast.
 type EventMultiplexer struct {
+	logsupport
 	// Broadcast is the channel to set events to for them to be multiplexed out
 	Broadcast chan<- WatchEvent
 
@@ -18,15 +25,15 @@ type EventMultiplexer struct {
 
 	onElement *PathElement
 
-	connections map[chan<- WatchEvent]subscriberStats
+	connections map[chan<- WatchEvent]bool
 }
 
 // Register starts receiving messages on the given channel. If a
 // channel close is seen, either the topic has been shut down, or the
 // consumer was too slow, and should re-register.
-func (t *EventMultiplexer) Register(ch chan<- WatchEvent) {
+func (t *EventMultiplexer) Register(ch chan<- WatchEvent, recursive bool) {
 	t.lock.Lock()
-	t.connections[ch] = subscriberStats{}
+	t.connections[ch] = recursive
 	t.lock.Unlock()
 }
 
@@ -69,7 +76,7 @@ func NewEventsMultiplexer() *EventMultiplexer {
 		Broadcast:   broadcast,
 		lock:        &sync.Mutex{},
 		onElement:   nil,
-		connections: make(map[chan<- WatchEvent]subscriberStats),
+		connections: make(map[chan<- WatchEvent]bool),
 	}
 
 	go t.run(broadcast)
@@ -92,19 +99,36 @@ func (t *EventMultiplexer) BroadcastAsync(evt WatchEvent) {
 func (t *EventMultiplexer) run(broadcastchan <-chan WatchEvent) {
 	for msg := range broadcastchan {
 		func() {
-			//t.lock.Lock()
-			for ch := range t.connections {
+			// send our broadcast event to every subscriber
+			for ch, rec := range t.connections {
+				if rec == false {
+					if msg.elem != t.onElement {
+						continue // this connect only wants notifications about itself
+					}
+				}
 				select {
 				case ch <- msg:
 					// sends event to individual multiplexer subscriber
 				default:
+					// cannot send message, listener has closed the channel
+					t.lock.Lock()
+					t.Debug("removing disconnected subscriber")
 					delete(t.connections, ch)
 					close(ch)
+					t.lock.Unlock()
 				}
 			}
-			//t.lock.Unlock()
+
+			//LOCKING AND DEFAULT HERE ARE ISSUES
+
+
+			//
 		}()
 	}
+
+
+
+
 	// broadcast channel has been closed at this point
 	t.lock.Lock()
 	for ch := range t.connections {
