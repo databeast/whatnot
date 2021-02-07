@@ -25,15 +25,11 @@ type elementChange struct {
 	actor  access.Role
 }
 
-// new key additions recheck those lists, add watches on keys ?
-
-// PathSubscription implements a notification Subscription
-// to a given PathElement (and potentially all its descendents)
-type PathSubscription struct {
-	baseElement *PathElement
-}
-
+// ElementWatchSubscription is a contract to be notified
+// of all events on a given Path Element, and optionally
+// all its child elements
 type ElementWatchSubscription struct {
+	logsupport
 	onElement   *PathElement // the Path Element this is a subscription to
 	isRecursive bool         // is this subscription for this element alone, or its children as well?
 	events      chan WatchEvent
@@ -41,6 +37,8 @@ type ElementWatchSubscription struct {
 
 type WatchEvents chan WatchEvent
 
+// WatchEvent describes an event on a Path Element or optionally
+// any of its children, obtained and consumed via an ElementWatchSubscription
 type WatchEvent struct {
 	elem   *PathElement
 	TS     time.Time
@@ -64,8 +62,11 @@ func (m *PathElement) SubscribeToEvents(prefix bool) *ElementWatchSubscription {
 	return sub
 }
 
-func (m *PathElement) UnSubscribeFromEvents() error {
-	return nil
+// UnSubscribeFromEvents will unregister the notification channel
+// and then nil out the watch subscription that is passed to it
+func (m *PathElement) UnSubscribeFromEvents(sub *ElementWatchSubscription) {
+	m.subscriberNotify.Unregister(sub.events)
+	sub = nil
 }
 
 // watchChildren is a PathElement-specific goroutine to handle event channels

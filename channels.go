@@ -53,13 +53,15 @@ func (m *PathElement) initEventBroadcast() {
 		// simple reentrance
 		return
 	}
+	m.mu.Lock()
 	m.subscriberNotify = NewEventsMultiplexer()
+	m.subscriberNotify.onElement = m
+	m.mu.Unlock()
 }
 
-// initEventBroadcast creates a new event multiplexer
-// Messages can be broadcast on this topic,
-// and registered consumers are guaranteed to either receive them, or
-// see a channel close.
+// NewEventsMultiplexer creates a new event multiplexer
+// that will duplicate incoming WatchEvents to multiple watcher
+// channels
 func NewEventsMultiplexer() *EventMultiplexer {
 
 	var broadcast = make(chan WatchEvent, defaultMultiplexerBuffer)

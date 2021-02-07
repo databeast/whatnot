@@ -87,24 +87,37 @@ const (
 	optionRateLimit      optionName = "lease rate limiting"
 )
 
-type ManagerOption func() optionName
+type ManagerOption interface {
+	apply(manager *NameSpaceManager)
+	name() optionName
+}
 
-var WithGossip = func() optionName {
+type managerOptionFunc func() optionName
+
+var WithGossip managerOptionFunc = func() optionName {
 	return optionDiscoverGossip
 }
 
-var WithRaft = func() optionName {
+var WithRaft managerOptionFunc = func() optionName {
 	return optionSyncRaft
 }
 
-var WithTrace = func() optionName {
+var WithTrace managerOptionFunc = func() optionName {
 	return optionTrace
 }
 
-var WithDeadlockBreak = func() optionName {
+var WithDeadlockBreak managerOptionFunc= func() optionName {
 	return optionBreak
 }
 
-var WithAcls = func() optionName {
+var WithAcls managerOptionFunc = func() optionName {
 	return optionAcls
+}
+
+func (f managerOptionFunc) apply(manager *NameSpaceManager) {
+
+}
+
+func (f managerOptionFunc) name() optionName{
+	return f()
 }

@@ -15,6 +15,7 @@ import (
 // lifetime to keep it in sync with the accordant lease it was generated with to enable
 // your code to control and react to lease expiration
 type LeaseContext struct {
+	logsupport
 	ctx       context.Context
 	elem      *PathElement
 	recursive bool
@@ -52,29 +53,29 @@ func (l *LeaseContext) Cancel() {
 
 // LockWithLease will lock a single path element with a timed lease on the lock
 // it uses a a background context so cannot be cancelled before the lease expires
-func (m *PathElement) LockWithLease(ttl time.Duration) (ctx *LeaseContext, release func(), err error) {
+func (m *PathElement) LockWithLease(ttl time.Duration) (ctx *LeaseContext, release func()) {
 	return m.generateLease(context.Background(), ttl, false)
 }
 
-// LockWithContextLockWithLeaseLease will lock a single path element with a timed lease on the lock
+// ContextLockWithLease will lock a single path element with a timed lease on the lock
 // you provide the context instance to have external control to cancel it before timeout
-func (m *PathElement) ContextLockWithLease(octx context.Context, ttl time.Duration) (ctx *LeaseContext, release func(), err error) {
+func (m *PathElement) ContextLockWithLease(octx context.Context, ttl time.Duration) (ctx *LeaseContext, release func()) {
 	return m.generateLease(octx, ttl, false)
 }
 
 // LockPrefixWithLease will lock a path element and all sub-elements with a timed lease on the lock
 // it uses a a background context so cannot be cancelled before the lease expires
-func (m *PathElement) LockPrefixWithLease(ttl time.Duration) (ctx *LeaseContext, release func(), err error) {
+func (m *PathElement) LockPrefixWithLease(ttl time.Duration) (ctx *LeaseContext, release func()) {
 	return m.generateLease(context.Background(), ttl, true)
 }
 
-// LockPrefixWithLease will lock a path element and all sub-elements with a timed lease on the lock
+// ContextLockPrefixWithLease will lock a path element and all sub-elements with a timed lease on the lock
 // you provide the context instance to have external control to cancel it before timeout
-func (m *PathElement) ContextLockPrefixWithLease(octx context.Context, ttl time.Duration) (ctx *LeaseContext, release func(), err error) {
+func (m *PathElement) ContextLockPrefixWithLease(octx context.Context, ttl time.Duration) (ctx *LeaseContext, release func()) {
 	return m.generateLease(octx, ttl, true)
 }
 
-func (m *PathElement) generateLease(octx context.Context, ttl time.Duration, recursive bool) (ctx *LeaseContext, release func(), err error) {
+func (m *PathElement) generateLease(octx context.Context, ttl time.Duration, recursive bool) (ctx *LeaseContext, release func()) {
 
 	dl, cancel := context.WithTimeout(octx, ttl)
 
@@ -94,9 +95,10 @@ func (m *PathElement) generateLease(octx context.Context, ttl time.Duration, rec
 		m.LockSubs()
 	} else {
 		m.Lock()
+
 	}
 
-	m.unlockAfterExpire(ttl)
+	m.unlockAfterExpire()
 
-	return ctx, cancel, nil
+	return ctx, cancel
 }

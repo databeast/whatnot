@@ -67,7 +67,7 @@ func (m *Namespace) FetchAbsolutePath(path PathString) *PathElement {
 	return lastElem
 }
 
-// FindPathTailFetch attempts to locate the last element that most closely matches the given path fragment
+// FindPathTail attempts to locate the last element that most closely matches the given path fragment
 // if no suitable match can be found, it returns Nil, if multiple elements are found, it returns the first
 // one going from alphabetically-sorted pathing
 func (m *Namespace) FindPathTail(path PathString) *PathElement {

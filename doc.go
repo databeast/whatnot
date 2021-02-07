@@ -1,5 +1,5 @@
 /*
-Whatnot is a low-footprint, high-speed, cluster-friendly volatile system for providing etcd-like
+Package whatnot is a low-footprint, high-speed, cluster-friendly volatile system for providing etcd-like
 distributed semaphores on hierarchical resource identifiers with subscribable watch notifications.
 
 It is intended to replace the functionality of systems like Redis and Etcd, in situations where

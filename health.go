@@ -14,12 +14,13 @@ Health Check functions to use for Kubernetes Health-Check functions
 
 // Percentage of currently locked Nodes
 
-// Global HealthCheck poller
+// Healthy provides a Global HealthCheck poller
+// with a simple yes/no response to overall subsystem health
 func Healthy() bool {
 	return true
 }
 
-// attach this to your appropriate HTTP Healthcheck Endpoint
+// HealthHandler is an HTTP HandlerFunc to attach this to your appropriate HTTP Healthcheck Endpoint
 func HealthHandler(r *http.Request, w http.ResponseWriter) {
 
 }

@@ -66,7 +66,7 @@ func (m *SmartMutex) SoftLock() {
 	}
 }
 
-func (m SmartMutex) Name() string {
+func (m *SmartMutex) Name() string {
 	n := m.name
 	return n
 }

@@ -12,6 +12,42 @@ type Logger interface {
 	Errorf(format string, a ...interface{})
 }
 
+type logsupport struct {
+
+}
+
+func (n logsupport) Debug(msg string) {
+
+}
+
+func (n logsupport) Debugf(format string, a ...interface{}) {
+
+}
+
+func (n logsupport) Info(msg string) {
+
+}
+
+func (n logsupport) Infof(format string, a ...interface{}) {
+
+}
+
+func (n logsupport) Warn(msg string) {
+
+}
+
+func (n logsupport) Warnf(format string, a ...interface{}) {
+
+}
+
+func (n logsupport) Error(msg string) {
+
+}
+
+func (n logsupport) Errorf(format string, a ...interface{}) {
+
+}
+
 // nilLogger provides fallback dummy logging if no logger is attached to a namespace manager
 type nilLogger struct{}
 

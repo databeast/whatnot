@@ -20,8 +20,8 @@ func createNewLeaseOnPathElement(t *testing.T) {
 		return
 	}
 	elem := gns.FetchAbsolutePath("/testelement")
-	_, cancel, err := elem.LockWithLease(time.Second * 2)
-	if !assert.Nil(t, err, "creating lease returned error") {
+	lease, cancel := elem.LockWithLease(time.Second * 2)
+	if !assert.NotNil(t, lease, "creating lease returned nil") {
 		t.Error(err.Error())
 		return
 	}
@@ -43,7 +43,7 @@ func leaseExpiresAsExpected(t *testing.T) {
 
 	leaseFor := time.Second
 
-	ctx, cancel, err := elem.LockWithLease(leaseFor)
+	ctx, cancel := elem.LockWithLease(leaseFor)
 	if !assert.Nil(t, err, "creating lease returned error") {
 		t.Error(err.Error())
 		return

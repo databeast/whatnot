@@ -11,6 +11,8 @@ import (
 
 // PathElement is an individual section of a complete path
 type PathElement struct {
+	logsupport // construct in
+
 	// internal mutex for synchronizing modifications to this structure itself
 	mu *mutex.SmartMutex
 

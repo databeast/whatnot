@@ -8,61 +8,54 @@ import (
 	"github.com/databeast/whatnot/access"
 )
 
-const LOCKING_FAIL_TIMEOUT = time.Second * 1 // reslock operations that take longer that this are considered failed
+// reslock operations that take longer that this are considered failed
+const defaultLockAttemptTimeout = time.Second * 1
 
 // resourceLock is a Temporary Locking Semaphore on an namespace element resource
 type resourceLock struct {
+	logsupport
 	selfmu    *sync.Mutex // mutex for modifying myself
 	resmu     *sync.Mutex // mutex for modifying my attached Path Element
-	islocked  bool
-	recursive bool
+	islocked  bool		  // readable state flag to making mutex state knowable
+	recursive bool		  // does this resource lock cover child Path Elements?
 	Role      access.Role // APi Role that is keeping this locked
 	deadline  context.Context
 }
 
 // unlockAfterExpire sets the given Path Element to remove any leases on it after the given duration
-func (m *PathElement) unlockAfterExpire(ttl time.Duration) {
-	// assign a deadline context to this reslock
-	m.reslock.selfmu.Lock()
-	dl, cancelFunc := context.WithTimeout(context.Background(), ttl)
-	m.reslock.deadline = dl
-	m.reslock.selfmu.Unlock()
-
+func (m *PathElement) unlockAfterExpire() {
 	go func() {
 		select {
-		case <-m.reslock.deadline.Done():
-			if m.reslock.recursive {
-				unlockWg := &sync.WaitGroup{}
-				unlockWg.Add(1)
-				go m.asyncRecursiveUnLockSelfAndSubs(unlockWg)
-				unlockWg.Wait()
-				cancelFunc()
-			} else {
-				m.reslock.resmu.Unlock()
-				//defer cancelFunc()
-				cancelFunc()
-			}
+			case <-m.reslock.deadline.Done():
+				if m.reslock.recursive {
+					unlockWg := &sync.WaitGroup{}
+					unlockWg.Add(1)
+					go m.asyncRecursiveUnLockSelfAndSubs(unlockWg)
+					unlockWg.Wait()
+				} else {
+					m.reslock.resmu.Unlock()
+				}
 		}
-
 	}()
-
 }
 
 func (r *resourceLock) lock(recursive bool) {
 	r.selfmu.Lock()
 	if r.islocked {
-		namespaceLogging.Debug("waiting to claim additional lock")
+		r.Debug("waiting to claim additional lock")
 	}
+
 	r.resmu.Lock()
 	r.recursive = recursive
 	r.islocked = true
+
 	r.selfmu.Unlock()
 }
 
 func (r *resourceLock) unlock() {
 	r.selfmu.Lock()
 	if r.islocked == false {
-		namespaceLogging.Info("ignoring call to unlock already unlocked reslock")
+		r.Warn("ignoring call to unlock already unlocked reslock")
 		r.resmu.Unlock()
 		return
 	}

@@ -37,7 +37,7 @@ func (m PathString) ToAbsolutePath() AbsolutePath {
 	return splitPath(m)
 }
 
-// ToRelativePath
+// ToRelativePath breaks down a path string into a relative Path
 func (m PathString) ToRelativePath() RelativePath {
 	return splitPath(m)
 }
