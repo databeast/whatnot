@@ -30,6 +30,14 @@ func NewNamespace(name string) (ns *Namespace) {
 		subevents:    make(chan elementChange),
 		parentnotify: ns.events,
 	}
+
+	// now create a top-level consumer for incoming events that have no specific subscriber
+	go func() {
+		for {
+			<-ns.root.subevents
+		}
+	}()
+
 	return ns
 }
 

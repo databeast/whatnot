@@ -82,8 +82,10 @@ func (m *PathElement) watchChildren() {
 		for {
 			select {
 			case e = <-m.subevents:
+				m.Debug("received change notify from children")
 				// process events from our children
 			case e = <-m.selfevents:
+				m.Debug("received change notify on self")
 				// process events from ourself
 			}
 
@@ -91,7 +93,10 @@ func (m *PathElement) watchChildren() {
 				panic("elementChange event passed with nil PathElement")
 			}
 			pe := e // clone our event to send upwards, make the data race analyzer happy
-			go func() { m.parentnotify <- pe }()
+			if m.parent.section !=  rootId {
+				m.parentnotify <- pe
+			}
+
 			// then do what we need to do with the event ourselves now
 			m.logChange(e)
 
@@ -114,5 +119,4 @@ func (m *ElementWatchSubscription) Events() <-chan WatchEvent {
 	return m.events
 }
 
-type subscriberStats struct{}
 

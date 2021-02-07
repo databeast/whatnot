@@ -176,7 +176,8 @@ func (m *PathElement) Add(path SubPath) (elem *PathElement, err error) {
 		parentnotify: m.subevents,
 		mu:           mutex.New(fmt.Sprintf("internal mutex for %s", path)),
 		children:     make(map[SubPath]*PathElement),
-		subevents:    make(chan elementChange),
+		subevents:    make(chan elementChange, 2),
+		selfevents:   make(chan elementChange, 2),
 	}
 	m.children[path] = elem
 	elem.reslock = resourceLock{

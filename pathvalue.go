@@ -14,13 +14,7 @@ func (m *PathElement) SetValue(value ElementValue, change changeType, actor acce
 	m.resval = value
 	m.mu.Unlock()
 
-	select {
-	case m.parentnotify <- elementChange{elem: m, change: change, actor: actor}:
-		// event has been sent to an active listern
-	default:
-		// subscriberStats was listening to recieve the notification
-	}
-
+	m.parentnotify <- elementChange{elem: m, change: change, actor: actor}
 }
 
 func (m *PathElement) GetValue() (value ElementValue) {
