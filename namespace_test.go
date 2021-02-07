@@ -15,9 +15,12 @@ func TestNamespaces(t *testing.T) {
 func registerNewNamespace(t *testing.T) {
 	const testNameSpace = "globaltest"
 	t.Log("Creating Namespace Manager")
-	manager = NewNamespaceManager()
+	manager, err := NewNamespaceManager()
+	if !assert.Nil(t, err, "NewNamespaceManager returned error") {
+		return
+	}
 	gns := NewNamespace(testNameSpace)
-	err := manager.RegisterNamespace(gns)
+	err = manager.RegisterNamespace(gns)
 	if !assert.Nil(t, err, "RegisterNamespace returned error") {
 		return
 	}

@@ -16,7 +16,7 @@ type NameSpaceManager struct {
 
 // NewNamespaceManager create a top-level namespace manager, to contain multiple subscribable namespaces
 // you probably only want to call this once, to initialize WhatNot, but who am I to tell you what your use cases are
-func NewNamespaceManager(opts ...ManagerOption) (nsm *NameSpaceManager) {
+func NewNamespaceManager(opts ...ManagerOption) (nsm *NameSpaceManager, err error) {
 	registerNameSpaceMetrics()
 	nsm =  &NameSpaceManager{
 		mu:         mutex.New(fmt.Sprintf("NameSpace Manager mutex")),
@@ -24,9 +24,12 @@ func NewNamespaceManager(opts ...ManagerOption) (nsm *NameSpaceManager) {
 		log:        nilLogger{},
 	}
 	for _, o := range opts {
-		o.apply(nsm)
+		err = o.apply(nsm)
+		if err != nil {
+			return nil, err
+		}
 	}
-	return nsm
+	return nsm, nil
 }
 
 // RegisterNamespace actives a name Namespace into the list of actively available and
@@ -87,7 +90,7 @@ const (
 )
 
 type ManagerOption interface {
-	apply(manager *NameSpaceManager)
+	apply(manager *NameSpaceManager) (err error)
 	name() optionName
 }
 
@@ -113,8 +116,8 @@ var WithAcls managerOptionFunc = func() optionName {
 	return optionAcls
 }
 
-func (f managerOptionFunc) apply(manager *NameSpaceManager) {
-
+func (f managerOptionFunc) apply(manager *NameSpaceManager) (err error) {
+	return
 }
 
 func (f managerOptionFunc) name() optionName{
@@ -131,6 +134,7 @@ func (w WithLogger) name() optionName {
 	return optionLogger
 }
 
-func (w WithLogger) apply(manager *NameSpaceManager) {
+func (w WithLogger) apply(manager *NameSpaceManager) (err error) {
 	manager.log = w.l
+	return nil
 }

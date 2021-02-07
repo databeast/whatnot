@@ -10,8 +10,12 @@ func TestNamespaceManager(t *testing.T) {
 }
 
 func newManagerWithOptions(t *testing.T) {
-	manager := NewNamespaceManager(WithAcls, WithRaft, WithTrace, WithGossip, WithDeadlockBreak, WithLogger{createTestLogger(t)})
-	err := manager.RegisterNamespace(NewNamespace("test"))
+	manager, err := NewNamespaceManager(WithAcls, WithRaft, WithTrace, WithGossip, WithDeadlockBreak, WithLogger{createTestLogger(t)})
+	if !assert.Nil(t, err, "registering namespace manager failed") {
+		t.Error(err.Error())
+		return
+	}
+	err = manager.RegisterNamespace(NewNamespace("test"))
 	if !assert.Nil(t, err, "registering namespace failed") {
 		t.Error(err.Error())
 		return
