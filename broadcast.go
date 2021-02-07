@@ -119,11 +119,6 @@ func (t *EventMultiplexer) run(broadcastchan <-chan WatchEvent) {
 					t.lock.Unlock()
 				}
 			}
-
-			//LOCKING AND DEFAULT HERE ARE ISSUES
-
-
-			//
 		}()
 	}
 

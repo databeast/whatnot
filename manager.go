@@ -16,13 +16,17 @@ type NameSpaceManager struct {
 
 // NewNamespaceManager create a top-level namespace manager, to contain multiple subscribable namespaces
 // you probably only want to call this once, to initialize WhatNot, but who am I to tell you what your use cases are
-func NewNamespaceManager(opts ...ManagerOption) *NameSpaceManager {
+func NewNamespaceManager(opts ...ManagerOption) (nsm *NameSpaceManager) {
 	registerNameSpaceMetrics()
-	return &NameSpaceManager{
+	nsm =  &NameSpaceManager{
 		mu:         mutex.New(fmt.Sprintf("NameSpace Manager mutex")),
 		namespaces: make(map[string]*Namespace),
 		log:        nilLogger{},
 	}
+	for _, o := range opts {
+		o.apply(nsm)
+	}
+	return nsm
 }
 
 // RegisterNamespace actives a name Namespace into the list of actively available and
@@ -68,13 +72,7 @@ func (m *NameSpaceManager) FetchNamespace(name string) (ns *Namespace, err error
 	}
 }
 
-// WithLogger attaches a Logger to the Namespace manager
-// allowing you to insert your own logging solution into Whatnot
-func (m *NameSpaceManager) WithLogger(l Logger) *NameSpaceManager {
-	m.log = l
-	return m
 
-}
 
 type optionName string
 
@@ -85,6 +83,7 @@ const (
 	optionBreak          optionName = "break mutex deadlocking"
 	optionAcls           optionName = "enable element permissions"
 	optionRateLimit      optionName = "lease rate limiting"
+	optionLogger	     optionName = "custom log output"
 )
 
 type ManagerOption interface {
@@ -120,4 +119,18 @@ func (f managerOptionFunc) apply(manager *NameSpaceManager) {
 
 func (f managerOptionFunc) name() optionName{
 	return f()
+}
+
+// WithLogger attaches a Logger to the Namespace manager
+// allowing you to insert your own logging solution into Whatnot
+type WithLogger struct {
+	l Logger
+}
+
+func (w WithLogger) name() optionName {
+	return optionLogger
+}
+
+func (w WithLogger) apply(manager *NameSpaceManager) {
+	manager.log = w.l
 }
