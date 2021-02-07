@@ -53,10 +53,10 @@ func (m *PathElement) initEventBroadcast() {
 		// simple reentrance
 		return
 	}
-	m.mu.Lock()
 	m.subscriberNotify = NewEventsMultiplexer()
 	m.subscriberNotify.onElement = m
-	m.mu.Unlock()
+	// start reading incoming events from child elements
+	m.watchChildren()
 }
 
 // NewEventsMultiplexer creates a new event multiplexer

@@ -185,10 +185,7 @@ func (m *PathElement) Add(path SubPath) (elem *PathElement, err error) {
 		recursive: false,
 	}
 	// begin the broadcaster for watch subscriptions to function
-	m.initEventBroadcast()
-
-	// start reading incoming events from child elements
-	elem.watchChildren()
+	elem.initEventBroadcast()
 
 	m.mu.Unlock()
 	return elem, nil
