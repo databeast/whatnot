@@ -9,7 +9,7 @@ import (
 
 func TestWatchNotifications(t *testing.T) {
 	t.Run("Create new watch subscription on PathElement", createNewWatchOnElement)
-	t.Run("changing a path element creates notification", changeElementAndNotify)
+	t.Run("Changing a path element creates notification", changeElementAndNotify)
 }
 
 func createNewWatchOnElement(t *testing.T) {

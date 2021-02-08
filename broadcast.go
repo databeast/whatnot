@@ -113,7 +113,7 @@ func (t *EventMultiplexer) run(broadcastchan <-chan WatchEvent) {
 				default:
 					// cannot send message, listener has closed the channel
 					t.lock.Lock()
-					t.Debug("removing disconnected subscriber")
+					t.Debugf("%s removing disconnected subscriber", t.onElement.AbsolutePath().ToPathString())
 					delete(t.connections, ch)
 					close(ch)
 					t.lock.Unlock()

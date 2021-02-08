@@ -82,11 +82,11 @@ func (m *PathElement) watchChildren() {
 		for {
 			select {
 			case e = <-m.subevents:
-				m.Debug("received change notify from children")
 				// process events from our children
+				m.Debugf("%s received change notify from child: %s", m.AbsolutePath().ToPathString(), e.elem.AbsolutePath().ToPathString())
 			case e = <-m.selfevents:
-				m.Debug("received change notify on self")
 				// process events from ourself
+				m.Debugf("%s received change notify on self", m.AbsolutePath().ToPathString())
 			}
 
 			if e.elem == nil {

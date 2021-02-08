@@ -11,7 +11,7 @@ import (
 type NameSpaceManager struct {
 	namespaces map[string]*Namespace
 	mu         *mutex.SmartMutex
-	log        Logger
+	logsupport
 }
 
 // NewNamespaceManager create a top-level namespace manager, to contain multiple subscribable namespaces
@@ -21,7 +21,6 @@ func NewNamespaceManager(opts ...ManagerOption) (nsm *NameSpaceManager, err erro
 	nsm =  &NameSpaceManager{
 		mu:         mutex.New(fmt.Sprintf("NameSpace Manager mutex")),
 		namespaces: make(map[string]*Namespace),
-		log:        nilLogger{},
 	}
 	for _, o := range opts {
 		err = o.apply(nsm)
@@ -43,7 +42,7 @@ func (m *NameSpaceManager) RegisterNamespace(ns *Namespace) error {
 	m.mu.Lock()
 	m.namespaces[ns.name] = ns
 	m.mu.Unlock()
-	m.log.Info(fmt.Sprintf("registered new namespace %q", ns.name))
+	m.Info(fmt.Sprintf("registered new namespace %q", ns.name))
 
 	return nil
 }
@@ -135,6 +134,10 @@ func (w WithLogger) name() optionName {
 }
 
 func (w WithLogger) apply(manager *NameSpaceManager) (err error) {
-	manager.log = w.l
+	if w.l == nil {
+		return newConfigError("no logger passed in withlogger config option")
+	}
+	w.l.Warn("replacing whatnot logging target")
+	whatlogger = w.l
 	return nil
 }
