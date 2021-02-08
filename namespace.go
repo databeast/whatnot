@@ -27,7 +27,7 @@ func NewNamespace(name string) (ns *Namespace) {
 		section:      rootId,
 		mu:           mutex.New("Namespace Root Element mutex"),
 		children:     make(map[SubPath]*PathElement),
-		subevents:    make(chan elementChange),
+		subevents:    make(chan elementChange, 100), // big buffer to absorb unsubscribed events
 		parentnotify: ns.events,
 	}
 

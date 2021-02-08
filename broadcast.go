@@ -76,7 +76,7 @@ func NewEventsMultiplexer() *EventMultiplexer {
 		Broadcast:   broadcast,
 		lock:        &sync.Mutex{},
 		onElement:   nil,
-		connections: make(map[chan<- WatchEvent]bool),
+		connections: make(map[chan<- WatchEvent]bool, 5), //give this a bit of a buffer so slow subscribers can respond
 	}
 
 	go t.run(broadcast)
@@ -113,7 +113,7 @@ func (t *EventMultiplexer) run(broadcastchan <-chan WatchEvent) {
 				default:
 					// cannot send message, listener has closed the channel
 					t.lock.Lock()
-					t.Debugf("%s removing disconnected subscriber", t.onElement.AbsolutePath().ToPathString())
+ 					t.Debugf("%s removing disconnected subscriber", t.onElement.AbsolutePath().ToPathString())
 					delete(t.connections, ch)
 					close(ch)
 					t.lock.Unlock()
