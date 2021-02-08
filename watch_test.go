@@ -49,11 +49,10 @@ func changeElementAndNotify(t *testing.T) {
 
 	t.Log("Creating a subscription to change notifications on the test element")
 	elem := gns.FetchAbsolutePath(testPathString)
-	parentelement := elem.Parent()
-
 	// create a local subscription to the element itself
-	sub := elem.SubscribeToEvents(false)
+	elemsub := elem.SubscribeToEvents(false)
 
+	parentelement := elem.Parent()
 	// create a prefix subscription to the parent element, which should also receive the same notification
 	parsub := parentelement.SubscribeToEvents(true)
 
@@ -64,18 +63,14 @@ func changeElementAndNotify(t *testing.T) {
 		elem.Lock()
 	}()
 
-	e := <-sub.Events()
+	e := <-elemsub.Events()
 	t.Logf("received update event %d from element subscription", e.id)
 	assert.Equal(t, elem, e.OnElement(), "watch event did not indicate original element")
 
 	e = <-parsub.Events()
 	t.Logf("received update event %d from parent element subscription", e.id)
 	assert.Equal(t, elem, e.OnElement(), "watch event did not indicate original element")
-
-	e = <-parsub.Events()
-	t.Logf("received update event %d from parent element subscription", e.id)
-	assert.Equal(t, elem, e.OnElement(), "watch event did not indicate original element")
-
-
+	
+	time.Sleep(time.Second)
 
 }

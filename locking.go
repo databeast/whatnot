@@ -69,7 +69,6 @@ func (r *resourceLock) unlock() {
 // and sends a notification of this lock to its chain of parent elements
 func (m *PathElement) Lock() {
 	m.reslock.lock(false)
-	m.parentnotify <- elementChange{id: rand.Uint64(), elem: m, change: ChangeLocked}
 	m.selfnotify <- elementChange{id: rand.Uint64(), elem: m, change: ChangeLocked}
 }
 
@@ -79,7 +78,6 @@ func (m *PathElement) Lock() {
 func (m *PathElement) UnLock() {
 	//NOTE: Subs will Remain Locked when doing this.
 	m.reslock.unlock()
-	m.parentnotify <- elementChange{id: rand.Uint64(), elem: m, change: ChangeUnlocked}
 	m.selfnotify <- elementChange{id: rand.Uint64(), elem: m, change: ChangeUnlocked}
 }
 
@@ -90,7 +88,6 @@ func (m *PathElement) LockSubs() {
 	lockwg.Add(1)
 	m.asyncRecursiveLockSelfAndSubs(lockwg)
 	lockwg.Wait()
-	m.parentnotify <- elementChange{id: rand.Uint64(), elem: m, change: ChangeLocked}
 	m.selfnotify <- elementChange{id: rand.Uint64(), elem: m, change: ChangeLocked}
 }
 
@@ -100,7 +97,6 @@ func (m *PathElement) UnLockSubs() {
 	unlockwg.Add(1)
 	m.asyncRecursiveUnLockSelfAndSubs(unlockwg)
 	unlockwg.Wait()
-	m.parentnotify <- elementChange{elem: m, change: ChangeUnlocked}
 	m.selfnotify <- elementChange{elem: m, change: ChangeUnlocked}
 }
 
