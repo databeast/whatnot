@@ -20,30 +20,35 @@ its sub-paths
 
 ## Key Functionality
 
-## Why use this over <ProjectName>
+## Why use this over [ProjectName]
 
-Emphasis on lightweight
+### Emphasis on lightweight operation
 
 * No additional infrastructure
 * No storage persistence/synchronization latency
 * No huge memory requirements
 * not intended to be used for billions of key
 
-Emphasis on Structure and Hierarchy
+### Emphasis on Structure and Hierarchy
 
 * Etcd's explicity directory-path style namespaces were a huge inspiration
 
-Decentralized
+### Decentralized
 
-*
+* Support for direct clustering between your applications instances via Gossip, Raft and gRPC
 
-Built without storage persistence and centralization in mind.
+### Built without storage persistence and centralization in mind.
 
 Designed originally to coordinate cluster cache invalidation
 
-## Optional Build Tags
+## Selecting Compile-Time functionality with Optional Build Tags
 
-metrics
+_metrics_ - enabled this build tag will register Prometheus metrics from Whatnot into the prometheus metrics registry
+if your application exports Prometheus metrics (or makes them available via HTTP by way of `promhttp`), you should see the following
+additional metrics available amongst your existing ones:
 
-errortraces
+
+_errortraces_
+
+
 
