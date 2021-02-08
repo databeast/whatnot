@@ -70,7 +70,7 @@ func changeElementAndNotify(t *testing.T) {
 	e = <-parsub.Events()
 	t.Logf("received update event %d from parent element subscription", e.id)
 	assert.Equal(t, elem, e.OnElement(), "watch event did not indicate original element")
-	
+
 	time.Sleep(time.Second)
 
 }

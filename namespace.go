@@ -44,8 +44,8 @@ func NewNamespace(name string) (ns *Namespace) {
 
 // RegisterAbsolutePath constructs a complete path in the Namespace, with all required
 // structure instances to make the path immediately available and active
-func (m *Namespace) RegisterAbsolutePath(path AbsolutePath) error {
-	var currentElement = m.root
+func (ns *Namespace) RegisterAbsolutePath(path AbsolutePath) error {
+	var currentElement = ns.root
 	var err error
 	for _, p := range path {
 		currentElement, err = currentElement.Add(p)
@@ -58,9 +58,9 @@ func (m *Namespace) RegisterAbsolutePath(path AbsolutePath) error {
 
 // FetchAbsolutePath will return the PathElement instance at the end of the provided Path
 // assuming it exists, otherwise it returns Nil
-func (m *Namespace) FetchAbsolutePath(path PathString) *PathElement {
+func (ns *Namespace) FetchAbsolutePath(path PathString) *PathElement {
 	abspath := path.ToAbsolutePath()
-	lastElem := m.FindPathTail(path)
+	lastElem := ns.FindPathTail(path)
 
 	// if the lengths dont match, we definitely dont have a match
 	lastElemPath := lastElem.AbsolutePath()
@@ -79,14 +79,14 @@ func (m *Namespace) FetchAbsolutePath(path PathString) *PathElement {
 // FindPathTail attempts to locate the last element that most closely matches the given path fragment
 // if no suitable match can be found, it returns Nil, if multiple elements are found, it returns the first
 // one going from alphabetically-sorted pathing
-func (m *Namespace) FindPathTail(path PathString) *PathElement {
-	return m.root.FetchClosestSubPathTail(path)
+func (ns *Namespace) FindPathTail(path PathString) *PathElement {
+	return ns.root.FetchClosestSubPathTail(path)
 }
 
 // FetchAllAbsolutePaths returns an array of all distinct terminayted absolute paths
 // effectively dumping all possible paths in the entire namespace
-func (m *Namespace) FetchAllAbsolutePaths() (allpaths []AbsolutePath, err error) {
-	all, err := m.root.FetchAllSubPaths()
+func (ns *Namespace) FetchAllAbsolutePaths() (allpaths []AbsolutePath, err error) {
+	all, err := ns.root.FetchAllSubPaths()
 	if err != nil {
 		return nil, err
 	}

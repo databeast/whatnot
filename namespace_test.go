@@ -32,3 +32,4 @@ func registerNewNamespace(t *testing.T) {
 	assert.Equal(t, gns.name, fns.name, "namespace identifiers did not match")
 
 }
+
