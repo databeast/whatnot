@@ -34,7 +34,7 @@ type PathElement struct {
 	subevents chan elementChange
 
 	// channel for events directly on this element itself
-	selfevents chan elementChange
+	selfnotify chan elementChange
 
 	// reslock is the mutex-like structure governing the leasable lock
 	// on the resources represented by this Path Element
@@ -177,7 +177,7 @@ func (m *PathElement) Add(path SubPath) (elem *PathElement, err error) {
 		mu:           mutex.New(fmt.Sprintf("internal mutex for %s", path)),
 		children:     make(map[SubPath]*PathElement),
 		subevents:    make(chan elementChange, 2),
-		selfevents:   make(chan elementChange, 2),
+		selfnotify:   make(chan elementChange, 2),
 	}
 	m.children[path] = elem
 	elem.reslock = resourceLock{

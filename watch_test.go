@@ -65,12 +65,17 @@ func changeElementAndNotify(t *testing.T) {
 	}()
 
 	e := <-sub.Events()
-	t.Log("received update event from element subscription")
+	t.Logf("received update event %d from element subscription", e.id)
 	assert.Equal(t, elem, e.OnElement(), "watch event did not indicate original element")
 
 	e = <-parsub.Events()
-	t.Log("received update event from parent element subscription")
+	t.Logf("received update event %d from parent element subscription", e.id)
 	assert.Equal(t, elem, e.OnElement(), "watch event did not indicate original element")
+
+	e = <-parsub.Events()
+	t.Logf("received update event %d from parent element subscription", e.id)
+	assert.Equal(t, elem, e.OnElement(), "watch event did not indicate original element")
+
 
 
 }

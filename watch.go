@@ -20,6 +20,7 @@ const (
 // elementChange is a notification channel structure
 // for communicating changes to individual elements to subscribed watchers
 type elementChange struct {
+	id	   uint64
 	elem   *PathElement
 	change changeType
 	actor  access.Role
@@ -40,6 +41,7 @@ type WatchEvents chan WatchEvent
 // WatchEvent describes an event on a Path Element or optionally
 // any of its children, obtained and consumed via an ElementWatchSubscription
 type WatchEvent struct {
+	id 	   uint64
 	elem   *PathElement
 	TS     time.Time
 	Change changeType
@@ -83,8 +85,8 @@ func (m *PathElement) watchChildren() {
 			select {
 			case e = <-m.subevents:
 				// process events from our children
-				m.Debugf("%s received change notify from child: %s", m.AbsolutePath().ToPathString(), e.elem.AbsolutePath().ToPathString())
-			case e = <-m.selfevents:
+				m.Debugf("%s received change notify %d from child: %s", m.AbsolutePath().ToPathString(), e.id, e.elem.AbsolutePath().ToPathString())
+			case e = <-m.selfnotify:
 				// process events from ourself
 				m.Debugf("%s received change notify on self", m.AbsolutePath().ToPathString())
 			}
@@ -93,15 +95,14 @@ func (m *PathElement) watchChildren() {
 				panic("elementChange event passed with nil PathElement")
 			}
 			pe := e // clone our event to send upwards, make the data race analyzer happy
-			if m.parent.section !=  rootId {
-				m.parentnotify <- pe
-			}
+			m.parentnotify <- pe
 
 			// then do what we need to do with the event ourselves now
 			m.logChange(e)
 
 			// Broadcast the change out to all subscribers
 			m.subscriberNotify.Broadcast <- WatchEvent{
+				id:		e.id,
 				elem:   e.elem,
 				TS:     time.Now(),
 				Note:   "",

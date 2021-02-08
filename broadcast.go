@@ -109,7 +109,7 @@ func (t *EventMultiplexer) run(broadcastchan <-chan WatchEvent) {
 				select {
 				case ch <- msg:
 					// sends event to individual multiplexer subscriber
-					t.Debug("transmitted event to broadcast subscriber")
+					t.Debugf("transmitted event %d to broadcast subscriber", msg.id)
 				default:
 					// cannot send message, listener has closed the channel
 					t.lock.Lock()

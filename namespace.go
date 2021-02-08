@@ -27,11 +27,12 @@ func NewNamespace(name string) (ns *Namespace) {
 		section:      rootId,
 		mu:           mutex.New("Namespace Root Element mutex"),
 		children:     make(map[SubPath]*PathElement),
-		subevents:    make(chan elementChange, 100), // big buffer to absorb unsubscribed events
+		subevents:    make(chan elementChange, 100), // big buffer to absorb events
 		parentnotify: ns.events,
 	}
 
-	// now create a top-level consumer for incoming events that have no specific subscriber
+	// drain out notification events once they reach the root element
+	// TODO: perhaps include a root-level event subscription?
 	go func() {
 		for {
 			<-ns.root.subevents
