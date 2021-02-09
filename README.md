@@ -41,6 +41,12 @@ its sub-paths
 
 Designed originally to coordinate cluster cache invalidation
 
+## Resource Management
+
+Whatnot defaults to a _highly_ reactive concurrency model, whereby each distinctly unique element
+in the namespace recieves its own dedicated routine to pass up event notifications to its parent.
+
+
 ## Selecting Compile-Time functionality with Optional Build Tags
 
 _metrics_ - enabled this build tag will register Prometheus metrics from Whatnot into the prometheus metrics registry
