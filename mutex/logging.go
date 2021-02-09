@@ -8,7 +8,7 @@ type MutexLog interface {
 }
 
 func (m *SmartMutex) trace(msg string) {
-	mutexLogging.trace(msg)
+	//mutexLogging.trace(msg)
 }
 
 func dumpDeadlock() {
