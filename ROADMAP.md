@@ -1,6 +1,6 @@
 # Roadmap
 
-* BSON value storage and type registration 
+* BSON value storage and type registration
 * clustering:
     * direct cluster declaration
     * gossip discovery

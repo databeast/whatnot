@@ -20,7 +20,7 @@ const (
 // elementChange is a notification channel structure
 // for communicating changes to individual elements to subscribed watchers
 type elementChange struct {
-	id	   uint64
+	id     uint64
 	elem   *PathElement
 	change changeType
 	actor  access.Role
@@ -41,7 +41,7 @@ type WatchEvents chan WatchEvent
 // WatchEvent describes an event on a Path Element or optionally
 // any of its children, obtained and consumed via an ElementWatchSubscription
 type WatchEvent struct {
-	id 	   uint64
+	id     uint64
 	elem   *PathElement
 	TS     time.Time
 	Change changeType
@@ -102,7 +102,7 @@ func (m *PathElement) watchChildren() {
 
 			// Broadcast the change out to all subscribers
 			m.subscriberNotify.Broadcast <- WatchEvent{
-				id:		e.id,
+				id:     e.id,
 				elem:   e.elem,
 				TS:     time.Now(),
 				Note:   "",
@@ -119,5 +119,3 @@ func (m *PathElement) watchChildren() {
 func (m *ElementWatchSubscription) Events() <-chan WatchEvent {
 	return m.events
 }
-
-

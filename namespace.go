@@ -96,7 +96,3 @@ func (ns *Namespace) FetchAllAbsolutePaths() (allpaths []AbsolutePath, err error
 	return allpaths, nil
 
 }
-
-type NamespaceManagerOpt interface {
-	opt()
-}

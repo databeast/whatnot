@@ -17,8 +17,8 @@ type resourceLock struct {
 	logsupport
 	selfmu    *sync.Mutex // mutex for modifying myself
 	resmu     *sync.Mutex // mutex for modifying my attached Path Element
-	islocked  bool		  // readable state flag to making mutex state knowable
-	recursive bool		  // does this resource lock cover child Path Elements?
+	islocked  bool        // readable state flag to making mutex state knowable
+	recursive bool        // does this resource lock cover child Path Elements?
 	Role      access.Role // APi Role that is keeping this locked
 	deadline  context.Context
 }
@@ -27,15 +27,15 @@ type resourceLock struct {
 func (m *PathElement) unlockAfterExpire() {
 	go func() {
 		select {
-			case <-m.reslock.deadline.Done():
-				if m.reslock.recursive {
-					unlockWg := &sync.WaitGroup{}
-					unlockWg.Add(1)
-					go m.asyncRecursiveUnLockSelfAndSubs(unlockWg)
-					unlockWg.Wait()
-				} else {
-					m.reslock.resmu.Unlock()
-				}
+		case <-m.reslock.deadline.Done():
+			if m.reslock.recursive {
+				unlockWg := &sync.WaitGroup{}
+				unlockWg.Add(1)
+				go m.asyncRecursiveUnLockSelfAndSubs(unlockWg)
+				unlockWg.Wait()
+			} else {
+				m.reslock.resmu.Unlock()
+			}
 		}
 	}()
 }

@@ -13,6 +13,7 @@ type PathError struct {
 type ConfigError struct {
 	error
 }
+
 func newConfigError(msg string) error {
 	return ConfigError{errors.New(msg)}
 }

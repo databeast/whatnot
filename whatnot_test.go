@@ -12,7 +12,7 @@ const (
 
 func createTestNamespace(t *testing.T) *Namespace {
 	t.Log("Creating Namespace Manager")
-	manager, err := NewNamespaceManager( WithLogger{createTestLogger(t)})
+	manager, err := NewNamespaceManager(WithLogger{createTestLogger(t)})
 	if !assert.Nil(t, err, "NewNamespaceManager returned error") {
 		t.Error("failed to create Namespace Manager")
 		return nil
@@ -65,4 +65,3 @@ func (t testlogger) Error(msg string) {
 func (t testlogger) Errorf(format string, a ...interface{}) {
 	t.t.Logf(format, a...)
 }
-

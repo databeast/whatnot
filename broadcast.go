@@ -12,8 +12,6 @@ const (
 	defaultMultiplexerBuffer = 100
 )
 
-
-
 // EventMultiplexer is a pub-sub mechanism where consumers can Register to
 // receive messages sent to Broadcast.
 type EventMultiplexer struct {
@@ -113,7 +111,7 @@ func (t *EventMultiplexer) run(broadcastchan <-chan WatchEvent) {
 				default:
 					// cannot send message, listener has closed the channel
 					t.lock.Lock()
- 					t.Debugf("%s removing disconnected subscriber", t.onElement.AbsolutePath().ToPathString())
+					t.Debugf("%s removing disconnected subscriber", t.onElement.AbsolutePath().ToPathString())
 					delete(t.connections, ch)
 					close(ch)
 					t.lock.Unlock()
@@ -121,9 +119,6 @@ func (t *EventMultiplexer) run(broadcastchan <-chan WatchEvent) {
 			}
 		}()
 	}
-
-
-
 
 	// broadcast channel has been closed at this point
 	t.lock.Lock()

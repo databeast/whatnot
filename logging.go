@@ -14,7 +14,7 @@ type Logger interface {
 	Errorf(format string, a ...interface{})
 }
 
-type logsupport struct {}
+type logsupport struct{}
 
 func (n logsupport) Debug(msg string) {
 	whatlogger.Debug(msg)
