@@ -4,141 +4,18 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io"
-	"os"
+	"io/ioutil"
+	"runtime"
 	"sync"
 	"time"
-
 	"github.com/petermattis/goid"
 )
 
-const header = "POTENTIAL DEADLOCK:"
+const deadlockdumpheader = "POTENTIAL DEADLOCK:"
 
-// Opts control how deadlock detection behaves.
-// Options are supposed to be set once at a startup (say, when parsing flags).
-var Opts = struct {
-	// Mutex/RWMutex would work exactly as their sync counterparts
-	// -- almost no runtime penalty, no deadlock detection if Disable == true.
-	Disable bool
-	// Would disable lock order based deadlock detection if DisableLockOrderDetection == true.
-	DisableLockOrderDetection bool
-	// Waiting for a lock for longer than DeadlockTimeout is considered a deadlock.
-	// Ignored is DeadlockTimeout <= 0.
-	DeadlockTimeout time.Duration
-	// OnPotentialDeadlock is called each time a potential deadlock is detected -- either based on
-	// lock order or on lock wait time.
-	OnPotentialDeadlock func()
-	// Will keep MaxMapSize lock pairs (happens before // happens after) in the map.
-	// The map resets once the threshold is reached.
-	MaxMapSize int
-	// Will dump stacktraces of all goroutines when inconsistent locking is detected.
-	PrintAllCurrentGoroutines bool
-	mu                        *sync.Mutex // Protects the LogBuf.
-	// Will print deadlock info to log buffer.
-	LogBuf io.Writer
-}{
-	DeadlockTimeout: time.Second * 30,
-	OnPotentialDeadlock: func() {
-		os.Exit(2)
-	},
-	MaxMapSize: 1024 * 64,
-	mu:         &sync.Mutex{},
-	LogBuf:     os.Stderr,
-}
 
-// A Mutex is a drop-in replacement for sync.Mutex.
-// Performs deadlock detection unless disabled in Opts.
-type Mutex struct {
-	mu sync.Mutex
-}
-
-// Lock locks the mutex.
-// If the lock is already in use, the calling goroutine
-// blocks until the mutex is available.
-//
-// Unless deadlock detection is disabled, logs potential deadlocks to Opts.LogBuf,
-// calling Opts.OnPotentialDeadlock on each occasion.
-func (m *Mutex) Lock() {
-	lock(m.mu.Lock, m)
-}
-
-// Unlock unlocks the mutex.
-// It is a run-time error if m is not locked on entry to Unlock.
-//
-// A locked Mutex is not associated with a particular goroutine.
-// It is allowed for one goroutine to lock a Mutex and then
-// arrange for another goroutine to unlock it.
-func (m *Mutex) Unlock() {
-	m.mu.Unlock()
-	if !Opts.Disable {
-		postUnlock(m)
-	}
-}
-
-// An RWMutex is a drop-in replacement for sync.RWMutex.
-// Performs deadlock detection unless disabled in Opts.
-type RWMutex struct {
-	mu sync.RWMutex
-}
-
-// Lock locks rw for writing.
-// If the lock is already locked for reading or writing,
-// Lock blocks until the lock is available.
-// To ensure that the lock eventually becomes available,
-// a blocked Lock call excludes new readers from acquiring
-// the lock.
-//
-// Unless deadlock detection is disabled, logs potential deadlocks to Opts.LogBuf,
-// calling Opts.OnPotentialDeadlock on each occasion.
-func (m *RWMutex) Lock() {
-	lock(m.mu.Lock, m)
-}
-
-// Unlock unlocks the mutex for writing.  It is a run-time error if rw is
-// not locked for writing on entry to Unlock.
-//
-// As with Mutexes, a locked RWMutex is not associated with a particular
-// goroutine.  One goroutine may RLock (Lock) an RWMutex and then
-// arrange for another goroutine to RUnlock (Unlock) it.
-func (m *RWMutex) Unlock() {
-	m.mu.Unlock()
-	if !Opts.Disable {
-		postUnlock(m)
-	}
-}
-
-// RLock locks the mutex for reading.
-//
-// Unless deadlock detection is disabled, logs potential deadlocks to Opts.LogBuf,
-// calling Opts.OnPotentialDeadlock on each occasion.
-func (m *RWMutex) RLock() {
-	lock(m.mu.RLock, m)
-}
-
-// RUnlock undoes a single RLock call;
-// it does not affect other simultaneous readers.
-// It is a run-time error if rw is not locked for reading
-// on entry to RUnlock.
-func (m *RWMutex) RUnlock() {
-	m.mu.RUnlock()
-	if !Opts.Disable {
-		postUnlock(m)
-	}
-}
-
-func preLock(skip int, p interface{}) {
-	lo.preLock(skip, p)
-}
-
-func postLock(skip int, p interface{}) {
-	lo.postLock(skip, p)
-}
-
-func postUnlock(p interface{}) {
-	lo.postUnlock(p)
-}
-
-func lock(lockFn func(), ptr interface{}) {
+// THIS IS THE THING THAT DOES DEADLOCK ANALYSIS
+func deadlockcheck(lockFn func(), ptr interface{}) {
 	if Opts.Disable {
 		lockFn()
 		return
@@ -159,16 +36,16 @@ func lock(lockFn func(), ptr interface{}) {
 					prev, ok := lo.cur[ptr]
 					if !ok {
 						lo.mu.Unlock()
-						break // Nobody seems to be holding the lock, try again.
+						break // Nobody seems to be holding the deadlockcheck, try again.
 					}
 					Opts.mu.Lock()
-					fmt.Fprintln(Opts.LogBuf, header)
-					fmt.Fprintln(Opts.LogBuf, "Previous place where the lock was grabbed")
-					fmt.Fprintf(Opts.LogBuf, "goroutine %v lock %p\n", prev.gid, ptr)
-					printStack(Opts.LogBuf, prev.stack)
-					fmt.Fprintln(Opts.LogBuf, "Have been trying to lock it again for more than", Opts.DeadlockTimeout)
-					fmt.Fprintf(Opts.LogBuf, "goroutine %v lock %p\n", goid.Get(), ptr)
-					printStack(Opts.LogBuf, callers(2))
+					fmt.Fprintln(Opts.LogBuf, deadlockdumpheader)
+					fmt.Fprintln(Opts.LogBuf, "Previous place where the deadlockcheck was grabbed")
+					fmt.Fprintf(Opts.LogBuf, "goroutine %v deadlockcheck %p\n", prev.gid, ptr)
+					dumpDeadlock(Opts.LogBuf, prev.stack)
+					fmt.Fprintln(Opts.LogBuf, "Have been trying to deadlockcheck it again for more than", Opts.DeadlockTimeout)
+					fmt.Fprintf(Opts.LogBuf, "goroutine %v deadlockcheck %p\n", goid.Get(), ptr)
+					dumpDeadlock(Opts.LogBuf, callers(2))
 					stacks := stacks()
 					grs := bytes.Split(stacks, []byte("\n\n"))
 					for _, g := range grs {
@@ -205,12 +82,6 @@ func lock(lockFn func(), ptr interface{}) {
 	postLock(4, ptr)
 }
 
-type lockOrder struct {
-	mu    sync.Mutex
-	cur   map[interface{}]stackGID // stacktraces + gids for the locks currently taken.
-	order map[beforeAfter]ss       // expected order of locks.
-}
-
 type stackGID struct {
 	stack []uintptr
 	gid   int64
@@ -226,25 +97,8 @@ type ss struct {
 	after  []uintptr
 }
 
-var lo = newLockOrder()
-
-func newLockOrder() *lockOrder {
-	return &lockOrder{
-		cur:   map[interface{}]stackGID{},
-		order: map[beforeAfter]ss{},
-	}
-}
-
-func (l *lockOrder) postLock(skip int, p interface{}) {
-	stack := callers(skip)
-	gid := goid.Get()
-	l.mu.Lock()
-	l.cur[p] = stackGID{stack, gid}
-	l.mu.Unlock()
-}
-
 func (l *lockOrder) preLock(skip int, p interface{}) {
-	if Opts.DisableLockOrderDetection {
+	if Opts.DisableDeadlockDetection {
 		return
 	}
 	stack := callers(skip)
@@ -254,11 +108,11 @@ func (l *lockOrder) preLock(skip int, p interface{}) {
 		if b == p {
 			if bs.gid == gid {
 				Opts.mu.Lock()
-				fmt.Fprintln(Opts.LogBuf, header, "Recursive locking:")
-				fmt.Fprintf(Opts.LogBuf, "current goroutine %d lock %p\n", gid, b)
-				printStack(Opts.LogBuf, stack)
-				fmt.Fprintln(Opts.LogBuf, "Previous place where the lock was grabbed (same goroutine)")
-				printStack(Opts.LogBuf, bs.stack)
+				fmt.Fprintln(Opts.LogBuf, deadlockdumpheader, "Recursive locking:")
+				fmt.Fprintf(Opts.LogBuf, "current goroutine %d deadlockcheck %p\n", gid, b)
+				dumpDeadlock(Opts.LogBuf, stack)
+				fmt.Fprintln(Opts.LogBuf, "Previous place where the deadlockcheck was grabbed (same goroutine)")
+				dumpDeadlock(Opts.LogBuf, bs.stack)
 				l.other(p)
 				if buf, ok := Opts.LogBuf.(*bufio.Writer); ok {
 					buf.Flush()
@@ -273,15 +127,15 @@ func (l *lockOrder) preLock(skip int, p interface{}) {
 		}
 		if s, ok := l.order[beforeAfter{p, b}]; ok {
 			Opts.mu.Lock()
-			fmt.Fprintln(Opts.LogBuf, header, "Inconsistent locking. saw this ordering in one goroutine:")
+			fmt.Fprintln(Opts.LogBuf, deadlockdumpheader, "Inconsistent locking. saw this ordering in one goroutine:")
 			fmt.Fprintln(Opts.LogBuf, "happened before")
-			printStack(Opts.LogBuf, s.before)
+			dumpDeadlock(Opts.LogBuf, s.before)
 			fmt.Fprintln(Opts.LogBuf, "happened after")
-			printStack(Opts.LogBuf, s.after)
+			dumpDeadlock(Opts.LogBuf, s.after)
 			fmt.Fprintln(Opts.LogBuf, "in another goroutine: happened before")
-			printStack(Opts.LogBuf, bs.stack)
+			dumpDeadlock(Opts.LogBuf, bs.stack)
 			fmt.Fprintln(Opts.LogBuf, "happened after")
-			printStack(Opts.LogBuf, stack)
+			dumpDeadlock(Opts.LogBuf, stack)
 			l.other(p)
 			fmt.Fprintln(Opts.LogBuf)
 			if buf, ok := Opts.LogBuf.(*bufio.Writer); ok {
@@ -298,36 +152,49 @@ func (l *lockOrder) preLock(skip int, p interface{}) {
 	l.mu.Unlock()
 }
 
-func (l *lockOrder) postUnlock(p interface{}) {
-	l.mu.Lock()
-	delete(l.cur, p)
-	l.mu.Unlock()
+
+func callers(skip int) []uintptr {
+	s := make([]uintptr, 50) // Most relevant context seem to appear near the top of the stack.
+	return s[:runtime.Callers(2+skip, s)]
 }
 
-type rlocker RWMutex
+var fileSources struct {
+	sync.Mutex
+	lines map[string][][]byte
+}
 
-func (r *rlocker) Lock()   { (*RWMutex)(r).RLock() }
-func (r *rlocker) Unlock() { (*RWMutex)(r).RUnlock() }
+// Reads souce file lines from disk if not cached already.
+func getSourceLines(file string) [][]byte {
+	fileSources.Lock()
+	defer fileSources.Unlock()
+	if fileSources.lines == nil {
+		fileSources.lines = map[string][][]byte{}
+	}
+	if lines, ok := fileSources.lines[file]; ok {
+		return lines
+	}
+	text, _ := ioutil.ReadFile(file)
+	fileSources.lines[file] = bytes.Split(text, []byte{'\n'})
+	return fileSources.lines[file]
+}
 
-// Under lo.mu Locked.
-func (l *lockOrder) other(ptr interface{}) {
-	empty := true
-	for k := range l.cur {
-		if k == ptr {
-			continue
+func code(file string, line int) string {
+	lines := getSourceLines(file)
+	// lines are 1 based.
+	if line >= len(lines) || line <= 0 {
+		return "???"
+	}
+	return "{ " + string(bytes.TrimSpace(lines[line-1])) + " }"
+}
+
+// Stacktraces for all goroutines.
+func stacks() []byte {
+	buf := make([]byte, 1024*16)
+	for {
+		n := runtime.Stack(buf, true)
+		if n < len(buf) {
+			return buf[:n]
 		}
-		empty = false
+		buf = make([]byte, 2*len(buf))
 	}
-	if empty {
-		return
-	}
-	fmt.Fprintln(Opts.LogBuf, "Other goroutines holding locks:")
-	for k, pp := range l.cur {
-		if k == ptr {
-			continue
-		}
-		fmt.Fprintf(Opts.LogBuf, "goroutine %v lock %p\n", pp.gid, k)
-		printStack(Opts.LogBuf, pp.stack)
-	}
-	fmt.Fprintln(Opts.LogBuf)
 }

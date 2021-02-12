@@ -68,8 +68,9 @@ func (m *PathElement) SubscribeToEvents(prefix bool) *ElementWatchSubscription {
 	return sub
 }
 
-// UnSubscrulibeFromEvents will unregister the notification channel
-// and then nil out the watch subscription that is passed to it
+// UnSubscribeFromEvents will unregister the notification channel
+// and then nil out the watch subscription that is passed to it.
+// preventing any further reception of events
 func (m *PathElement) UnSubscribeFromEvents(sub *ElementWatchSubscription) {
 	m.subscriberNotify.Unregister(sub.events)
 	sub = nil

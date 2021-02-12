@@ -1,12 +1,12 @@
 package whatnot
 
 import (
+	"github.com/stretchr/testify/assert"
 	"golang.org/x/sync/errgroup"
+	"math/rand"
 	"path"
 	"testing"
 	"time"
-
-	"github.com/stretchr/testify/assert"
 )
 
 var manager *NameSpaceManager
@@ -17,7 +17,6 @@ func TestNamespaces(t *testing.T) {
 }
 
 func registerNewNamespace(t *testing.T) {
-	rand..
 	const testNameSpace = "globaltest"
 	t.Log("Creating Namespace Manager")
 	manager, err := NewNamespaceManager()
@@ -156,3 +155,4 @@ func (ns *Namespace) createRandomPathElement(root string) error {
 	} else {
 		return nil
 	}
+}

@@ -11,6 +11,9 @@ import (
 
 // PathElement is an individual section of a complete path
 type PathElement struct {
+	// It is a lockable item after all
+	sync.Locker
+
 	logsupport // construct in
 
 	// internal mutex for synchronizing modifications to this structure itself
@@ -130,7 +133,9 @@ func (m PathElement) FetchClosestSubPathTail(subPath PathString) *PathElement {
 	}
 }
 
-// FetchClosestSubPath
+// FetchClosestSubPath will attempt to find the final Path Element that has the
+// leading subpath string - this is relative to the pathelement itself, and is not an absolute
+// path.
 func (m *PathElement) FetchClosestSubPath(subPath PathString) (pathchain []*PathElement) {
 	elems := splitPath(subPath)
 	var finalElement *PathElement

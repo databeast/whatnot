@@ -8,7 +8,7 @@ type Role struct {
 	Permissions *PermissionSet
 }
 
-// Usagehook declares a function provided by your code
+// RoleUsageHookFunc declares a function provided by your code
 // which will be called (as a separate goroutine) when
 // a declared role is used to grant access to a Namespace
 // Path Element
