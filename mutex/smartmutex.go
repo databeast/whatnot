@@ -13,7 +13,7 @@ import (
 // from multiple code scopes
 type SmartMutex struct {
 	mu   *rwmutex // the base mutex primitive
-	name string  // an identifier for what this mutex controls
+	name string   // an identifier for what this mutex controls
 
 	statuslock *sync.Mutex // internal mutex for controlling status flags
 	locked     bool        // best-guess status flag to determine if the mutex is currently held
@@ -22,7 +22,6 @@ type SmartMutex struct {
 	count     int         // best-guess status for how many goroutines are waiting to hold this mutex
 
 }
-
 
 // Generate a new Mutex on the given element path
 func New(identifier string) *SmartMutex {
@@ -52,7 +51,7 @@ func (m *SmartMutex) SoftLock() {
 	}
 
 	m.statuslock.Unlock()
-	if Opts.Tracing  == true {
+	if Opts.Tracing == true {
 		m.countlock.Lock()
 		m.trace(fmt.Sprintf("pass-through softlock on %s is waiting for %d existing locks to release", m.name, m.count))
 		m.countlock.Unlock()
@@ -92,10 +91,9 @@ func (m *SmartMutex) Lock() {
 
 	if Opts.DisableDeadlockDetection {
 		m.mu.Lock()
-	} else{
+	} else {
 		deadlockcheck(m.mu.Lock, m)
 	}
-
 
 	m.statuslock.Lock()
 	m.locked = true
@@ -108,7 +106,6 @@ func (m *SmartMutex) Lock() {
 //
 // Unless deadlock detection is disabled, logs potential deadlocks to Opts.LogBuf,
 // calling Opts.OnPotentialDeadlock on each occasion.
-
 
 // Lock locks rw for writing.
 // If the deadlockcheck is already locked for reading or writing,

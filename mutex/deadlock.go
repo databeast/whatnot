@@ -4,15 +4,14 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"github.com/petermattis/goid"
 	"io/ioutil"
 	"runtime"
 	"sync"
 	"time"
-	"github.com/petermattis/goid"
 )
 
 const deadlockdumpheader = "POTENTIAL DEADLOCK:"
-
 
 // THIS IS THE THING THAT DOES DEADLOCK ANALYSIS
 func deadlockcheck(lockFn func(), ptr interface{}) {
@@ -151,7 +150,6 @@ func (l *lockOrder) preLock(skip int, p interface{}) {
 	}
 	l.mu.Unlock()
 }
-
 
 func callers(skip int) []uintptr {
 	s := make([]uintptr, 50) // Most relevant context seem to appear near the top of the stack.
