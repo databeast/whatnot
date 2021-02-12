@@ -15,7 +15,7 @@ type Namespace struct {
 }
 
 // NewNamespace creates a new Namespace Instance. If this is intended to be persisted
-// it should be registed to a NamespaceManager via RegisterNameSpace
+// it should be registered to a NamespaceManager via RegisterNameSpace
 func NewNamespace(name string) (ns *Namespace) {
 	ns = &Namespace{
 		name:     name,

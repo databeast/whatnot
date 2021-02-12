@@ -6,7 +6,7 @@ import (
 )
 
 // SmartMutex is a more extensive Mutex structure
-// with Deadlock-detection and metrics of deadlockcheck aquisition queues
+// with Deadlock-detection and metrics of deadlockcheck acquisition queues
 // while most Mutexes in Go should be extremely localized in Scope
 // and retain locks for a minimal time
 // this Mutex structure is optimized for uses by a great many goroutines

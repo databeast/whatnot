@@ -2,6 +2,7 @@
 
 ![Go](https://github.com/databeast/whatnot/workflows/Go/badge.svg)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/a57e480a071f4017a3692adaf7f1da17)](https://app.codacy.com/gh/databeast/whatnot?utm_source=github.com&utm_medium=referral&utm_content=databeast/whatnot&utm_campaign=Badge_Grade)
+[![Go Report Card](https://goreportcard.com/badge/github.com/databeast/whatnot)](https://goreportcard.com/report/github.com/databeast/whatnot)
 
 If you like Etcd's namespace-driven notification subscription model, but have no requirements for long-term storage,
 then the formality of Etcetera can be dropped in favor of...whatnot.
