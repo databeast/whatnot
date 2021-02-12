@@ -11,9 +11,6 @@ import (
 
 // PathElement is an individual section of a complete path
 type PathElement struct {
-	// It is a lockable item after all
-	sync.Locker
-
 	logsupport // construct in
 
 	// internal mutex for synchronizing modifications to this structure itself

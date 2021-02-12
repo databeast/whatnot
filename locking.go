@@ -67,6 +67,7 @@ func (r *resourceLock) unlock() {
 
 // Lock places a Mutex on this pathElement
 // and sends a notification of this lock to its chain of parent elements
+// this also fulfills the interface Sync.Locker
 func (m *PathElement) Lock() {
 	m.reslock.lock(false)
 	m.selfnotify <- elementChange{id: rand.Uint64(), elem: m, change: ChangeLocked}
@@ -75,6 +76,7 @@ func (m *PathElement) Lock() {
 // UnLock will release the Mutex Lock on this path element
 // Note that it will NOT unlock mutexes on sub-element
 // unlocking will sent a notification event to the chain of parent elements
+// this also fulfills the interface Sync.Locker
 func (m *PathElement) UnLock() {
 	//NOTE: Subs will Remain Locked when doing this.
 	m.reslock.unlock()
