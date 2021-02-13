@@ -80,7 +80,7 @@ func (m *SmartMutex) Lock() {
 		if m.count > 0 {
 			m.trace(fmt.Sprintf("waiting for lock on %s to release (%d already in queue)", m.name, m.count))
 		}
-		m.count += 1
+		m.count++
 		m.countlock.Unlock()
 	}
 	m.statuslock.Unlock()
