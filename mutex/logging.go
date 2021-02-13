@@ -16,6 +16,7 @@ type MutexLog interface {
 }
 
 func (m *SmartMutex) trace(msg string) {
+	println(msg)
 	//mutexLogging.trace(msg)
 }
 

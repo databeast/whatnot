@@ -6,10 +6,10 @@ import (
 )
 
 // SmartMutex is a more extensive Mutex structure
-// with Deadlock-detection and metrics of deadlockcheck acquisition queues
+// with Deadlock-detection and metrics of lock acquisition queues
 // while most Mutexes in Go should be extremely localized in Scope
 // and retain locks for a minimal time
-// this Mutex structure is optimized for uses by a great many goroutines
+// this Mutex structure is optimized for use by a great many goroutines
 // from multiple code scopes
 type SmartMutex struct {
 	mu   *rwmutex // the base mutex primitive
@@ -74,15 +74,11 @@ func (m *SmartMutex) IsLocked() bool {
 
 // Lock provides deadlock-aware, queue-tracking Mutex Locks
 func (m *SmartMutex) Lock() {
-	if m == nil {
-		panic("tried to lock a nil mutex")
-	}
-
 	m.statuslock.Lock()
 	if m.locked == true {
 		m.countlock.Lock()
 		if m.count > 0 {
-			m.trace(fmt.Sprintf("waiting for deadlockcheck on %s to release (%d already in queue)", m.name, m.count))
+			m.trace(fmt.Sprintf("waiting for lock on %s to release (%d already in queue)", m.name, m.count))
 		}
 		m.count += 1
 		m.countlock.Unlock()
@@ -135,9 +131,6 @@ func (m *SmartMutex) Queue() int {
 
 // Unlock implements standard Mutex Unlocking, with deadlockcheck wait queue tracking support
 func (m *SmartMutex) Unlock() {
-	if m == nil {
-		panic("tried to unlock a nil mutex")
-	}
 	if Opts.Tracing {
 		if m.count > 1 {
 			m.trace(fmt.Sprintf("releasing mutex deadlockcheck on %s (%d still in queue)", m.name, m.count))
@@ -167,10 +160,6 @@ func (m *SmartMutex) Unlock() {
 	m.statuslock.Unlock()
 }
 
-// RUnlock undoes a single RLock call;
-// it does not affect other simultaneous readers.
-// It is a run-time error if rw is not locked for reading
-// on entry to RUnlock.
 func (m *SmartMutex) RUnlock() {
 	m.mu.RUnlock()
 	if !Opts.Disable {
@@ -178,12 +167,13 @@ func (m *SmartMutex) RUnlock() {
 	}
 }
 
-// Unlock unlocks the mutex.
-// It is a run-time error if m is not locked on entry to Unlock.
-//
-// A locked Mutex is not associated with a particular goroutine.
-// It is allowed for one goroutine to deadlockcheck a Mutex and then
-// arrange for another goroutine to unlock it.
+func (m *SmartMutex) Rlock() {
+	m.mu.RUnlock()
+	if !Opts.Disable {
+		postLock(2, m)
+	}
+}
+
 func (m *rwmutex) Unlock() {
 	m.mu.Unlock()
 	if !Opts.Disable {
@@ -191,12 +181,6 @@ func (m *rwmutex) Unlock() {
 	}
 }
 
-// Unlock unlocks the mutex for writing.  It is a run-time error if rw is
-// not locked for writing on entry to Unlock.
-//
-// As with Mutexes, a locked rwmutex is not associated with a particular
-// goroutine.  One goroutine may RLock (Lock) an rwmutex and then
-// arrange for another goroutine to RUnlock (Unlock) it.
 func (m *rwmutex) RUnlock() {
 	m.mu.RUnlock()
 	if !Opts.Disable {
@@ -204,8 +188,6 @@ func (m *rwmutex) RUnlock() {
 	}
 }
 
-// An rwmutex is a drop-in replacement for sync.RWMutex.
-// Performs deadlock detection unless disabled in Opts.
 type rwmutex struct {
 	mu sync.RWMutex
 }
