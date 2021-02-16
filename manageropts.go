@@ -23,10 +23,13 @@ type ManagerOption interface {
 
 type managerOptionFunc func() optionName
 
+// WithGossip enables Gossip protocol Cluster member discovery of other instances running
+// the whatNot gRPC connector
 var WithGossip managerOptionFunc = func() optionName {
 	return optionDiscoverGossip
 }
 
+// WithRaft enables Raft Quorum synchromization - improving cluster accuracy at a slight speed and bandwith cost
 var WithRaft managerOptionFunc = func() optionName {
 	return optionSyncRaft
 }
@@ -39,6 +42,7 @@ var WithDeadlockBreak managerOptionFunc = func() optionName {
 	return optionBreak
 }
 
+// WithAcls turns on Whatnot's Access Control Management on individual Path Elements
 var WithAcls managerOptionFunc = func() optionName {
 	return optionAcls
 }

@@ -76,46 +76,6 @@ func (m *PathElement) UnSubscribeFromEvents(sub *ElementWatchSubscription) {
 	sub = nil
 }
 
-// watchChildren is a PathElement-specific goroutine to handle event channels
-// in default mode, this means that goroutine load scales 1-to-1 with total
-// number of distinct pathelements
-func (m *PathElement) watchChildren() {
-	go func() {
-		var e elementChange
-		for {
-			select {
-			case e = <-m.subevents:
-				// process events from our children
-				m.Debugf("%s received change notify %d from child: %s", m.AbsolutePath().ToPathString(), e.id, e.elem.AbsolutePath().ToPathString())
-			case e = <-m.selfnotify:
-				// process events from ourself
-				m.Debugf("%s received change notify on self", m.AbsolutePath().ToPathString())
-			}
-
-			if e.elem == nil {
-				panic("elementChange event passed with nil PathElement")
-			}
-			pe := e // clone our event to send upwards, make the data race analyzer happy
-			m.parentnotify <- pe
-
-			// then do what we need to do with the event ourselves now
-			m.logChange(e)
-
-			// Broadcast the change out to all subscribers
-			m.subscriberNotify.Broadcast <- WatchEvent{
-				id:     e.id,
-				elem:   e.elem,
-				TS:     time.Now(),
-				Note:   "",
-				Change: e.change,
-				Actor:  e.actor,
-			}
-			// TODO: needs close handler
-		}
-
-	}()
-}
-
 // Events returns a channel of subscriberNotify occurring to this Key (or its subKeys
 func (m *ElementWatchSubscription) Events() <-chan WatchEvent {
 	return m.events

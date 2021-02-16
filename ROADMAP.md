@@ -1,5 +1,6 @@
 # Roadmap
 
+* Semaphore Pool Support 
 * BSON value storage and type registration
 * clustering:
     * direct cluster declaration
