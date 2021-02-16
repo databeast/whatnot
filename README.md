@@ -19,9 +19,68 @@ particular element of a namespaced path and recieve notifications of events to t
 beneath it. Set a lease on a path element and receieve an expiring mutex on modifications to it, and optionally any of
 its sub-paths
 
+## Suggested Use Cases  
+
+Originally inspired by the Kubernetes REST api and its hierarchical ordering of resources, I wanted something similar, but with
+lower latency, and without storing the full resources into the system itself. I do a lot of microservices development and a key 
+design factor in those is being able to extend out the datamodel, without having to backport it to existing, stable components every time.
+
+Etcd's capability to arrange keys in a directory-like namespace, and apply mutex-style leases to a both a single key and its descendents
+appealed to me for this reason - allowing other components to extend a resource and be notified of it without other components having to 
+know of these items specifically. Etcd's ability to subscribe ('watch') a key, and send notifications to subscribers of leases and changes 
+to a single key or all of its children as well, was immensively useful for this design pattern.
+
+Caching and Resource Locking are two tasks that are almost inseparable, and this is where Whatnot is intended to excel - acting as 
+a distributed state coordinator, especially for microservice-based application architectures, where multiple elastically-scaling
+instances of a service exist together in coordinated deployments, and the overhead of an external service (redis, etc) to provide
+this functionality is an unncessary resource overhead when all is required from these services is the coordination of
+state.
+
+
+### Why use this over [ProjectName]
+
+#### Over Etcd ?
+
+#### Over Redis ?
+
+#### Over Consul ?
+
+### Discouraged Use cases
+
+Whatnot was created with the intention of creating a specialized package that incorporates certain features of larger, more
+popular software projects, without the unwanted overhead of their additional featureset - hence 
+
+#### Whatnot is not intended for persisting data.
+
+Although its possible to write your own serializer to save the state of a Whatnot namespace (perhaps during application shutdown)
+the internal system itself is not intended to incorporate any kind of storage backend - Other software accomplishes this requirement
+and use pattern far better already. So although Whatnot includes support for values on keys, those values should never be the only
+canonical store of that value
+
+Speed is always in contention to Accuracy
+
+Extremely large numbers of keys
+
+
 ## Key Functionality
 
-## Why use this over [ProjectName]
+#### Individual Namespaces
+
+* Completely separate notification channels
+
+
+#### Native Hierarchy Support
+just as with Etcd, Keys are organized into directory-like tree structures, where every key can have sub-keys.
+
+Just as with directory paths, this gives us the concept of both Absolute Paths and Relative Paths
+
+#### Leases and Prefix Leases
+
+returns a native Go `context.Context` object and `cancel()` function - once you have obtained a lock, the rest of your code doesnt 
+need to care about Whatnot, just follow regular Go patterns for working within a scope that has a deadline. Leases will forcibly 
+unlock the corresponding element once their deadline is reached, so it is up to your code to obey that channel signal and cease any 
+further operations that could induce race conditions.
+
 
 ### Emphasis on lightweight operation
 
@@ -47,13 +106,7 @@ Designed originally to coordinate cluster cache invalidation
 Whatnot defaults to a _highly_ reactive concurrency model, whereby each distinctly unique element in the namespace
 recieves its own dedicated routine to pass up event notifications to its parent.
 
-## Selecting Compile-Time functionality with Optional Build Tags
 
-_metrics_ - enabled this build tag will register Prometheus metrics from Whatnot into the prometheus metrics registry if
-your application exports Prometheus metrics (or makes them available via HTTP by way of `promhttp`), you should see the
-following additional metrics available amongst your existing ones:
-
-_errortraces_
 
 
 
