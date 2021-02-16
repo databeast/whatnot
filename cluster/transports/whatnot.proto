@@ -1,0 +1,10 @@
+syntax = "proto3";
+package tutorial;
+
+option go_package = "github.com/databeast/whatnot/cluster/transports" ;
+
+message Lease {
+  string name = 1;
+  int64 duration = 2;  // lease time in GO unixtime integer
+  string absolutepath = 3;
+}

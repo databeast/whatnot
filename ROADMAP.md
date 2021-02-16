@@ -10,3 +10,9 @@
 * Basic Standalone Server as docker container
 * Rate Limiting
 
+
+* Element Tags?
+  * fetch (all) by tag/state ?
+  
+
+
