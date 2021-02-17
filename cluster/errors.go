@@ -1,3 +1,0 @@
-// +build !errtrace
-
-package cluster

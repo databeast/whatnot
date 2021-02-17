@@ -41,9 +41,19 @@ state.
 
 #### Over Etcd ?
 
+Simply put, Etcd's storage quorum functionality placed an upper limit on the number of notifications per second, and their 
+accumulated latency, causing some notifications to be placed into a 'get around to eventually' queue. Those limitations
+combined with the resource requirements of Etcd were what inspired this project in the first place
+
 #### Over Redis ?
 
+Redis gives tools to build some complex setups that resemble this, and it has close to the required speed too,  but they require use of advanced commands and data modelling
+to approximate the same functionality. All of this places Redis on a scale larger than what I required here.  
+  
 #### Over Consul ?
+
+Consul, like Etcd, has the same hierarchical keyspace support, but focuses on persisting data with fairly low levels of state changes. 
+
 
 ### Discouraged Use cases
 
