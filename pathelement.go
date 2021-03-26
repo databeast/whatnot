@@ -46,6 +46,8 @@ type PathElement struct {
 	// Channel Multiplexer for sending watch events to subscriptions
 	// on this Path Element or any of its children
 	subscriberNotify *EventMultiplexer
+
+	prunetracker *pruningTracker
 }
 
 // SubPath returns the name of this Path Element

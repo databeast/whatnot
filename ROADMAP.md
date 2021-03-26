@@ -15,4 +15,9 @@
   * fetch (all) by tag/state ?
   
 
+* Resource Culling
+ * clear out sections of the Namespace after they haven't been accessed in (duration)
+
+  
+
 
