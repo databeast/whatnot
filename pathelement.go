@@ -1,7 +1,9 @@
 package whatnot
 
 import (
+	"context"
 	"fmt"
+	"math/rand"
 	"strings"
 	"sync"
 
@@ -47,7 +49,10 @@ type PathElement struct {
 	// on this Path Element or any of its children
 	subscriberNotify *EventMultiplexer
 
+	// pruning support for shutting down unused areas of the namespace after a duration
 	prunetracker *pruningTracker
+	prunectx 	 context.Context
+	prunefunc 	 context.CancelFunc
 }
 
 // SubPath returns the name of this Path Element
@@ -214,10 +219,23 @@ func (m *PathElement) attach(elem *PathElement) (err error) {
 	return nil
 }
 
-func  (m *PathElement) Delete() error {
+func  (m *PathElement) Delete() (err error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 
-	// signal that our event-watching goroutine needs to exit
-	m.
+	// cascade the context-cancel signal that our event-watching goroutine needs to exit, along with that of all child elements
+	m.prunefunc()
+
+	// recursively delete all children
+	for _, elem := range m.children {
+		err = elem.Delete()
+		if err != nil {
+			return err // TODO: what happens in this half-deleted state?
+		}
+	}
+	m.parentnotify <- elementChange{id: rand.Uint64(), elem: m, change: ChangeDeleted}
+
+	return nil
 }
 
 // AppendRelativePath constructs an element-relative subpath, append it to an Existing PathElement,

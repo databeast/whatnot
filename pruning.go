@@ -1,6 +1,9 @@
 package whatnot
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 /*
 Support for pruning off elements from a namespace once they haven't been active in a given amount of time
@@ -24,47 +27,67 @@ type pruningTracker struct {
 	retainData		bool
 }
 
-func (p *PathElement) EnablePruningAfter(age time.Duration) {
-
+func (m *PathElement) EnablePruningAfter(age time.Duration) {
+	m.prunectx, m.prunefunc = context.WithCancel(context.Background())
+	m.prunetracker = &pruningTracker{
+		pruneAfter:    age,
+		lastSelfUsed:  time.Now(),
+		lastChildUsed: time.Now(),
+		retainData:    false,
+	}
 }
 
-func (p *PathElement) checkForPruning() bool {
-	return false
+func (m *PathElement) PreventPruning() {
+	if m.prunetracker != nil {
+		m.prunetracker.retainData = true
+	}
 }
 
-func (p *PathElement) prune() {
-	if p.prunetracker == nil {
+func (m *PathElement) prune() {
+	if m.prunetracker == nil {
 		return
 	}
-	if p.prunetracker.retainData {
+	if m.prunetracker.retainData {
 		return // this element is not prunable
 	}
 	// if the children are in use, then this element is not prunable
-	if time.Now().Sub(p.prunetracker.lastChildUsed) < p.prunetracker.pruneAfter {
+	if time.Now().Sub(m.prunetracker.lastChildUsed) < m.prunetracker.pruneAfter {
 		return
 	}
 	// if the children are no longer in use, or this element has no children, test if it can be pruned away
-	if time.Now().Sub(p.prunetracker.lastSelfUsed) > p.prunetracker.pruneAfter {
-		p.Delete()
+	if time.Now().Sub(m.prunetracker.lastSelfUsed) > m.prunetracker.pruneAfter {
+		m.Delete() // TODO: what happens when only partial deletes occur?
 	}
 
 }
 
-func (p *PathElement) prunechildren() {
-	if p.prunetracker == nil {
+func (m *PathElement) prunechildren() {
+	if m.prunetracker == nil {
 		return
 	}
-	if p.prunetracker.retainData {
+	if m.prunetracker.retainData {
 		return // this element, and its children, are not prunable
 	}
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	for _, element := range p.children {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for _, element := range m.children {
 		element.prunechildren()
 		element.prune()
 	}
 }
 
+
+const pruneInterval = time.Second * 5
+
+func (n *Namespace) pruningcheck() {
+	startpruning := time.Tick(pruneInterval)
+	select {
+	case <- startpruning:
+		n.root.prunechildren()
+	}
+
+	//TODO : WHAT HAPPENS WHEN PRUNING TAKES LONG THAN PRUNING INTERVAL?
+}
 
 
 
