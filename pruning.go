@@ -11,6 +11,9 @@ at a small cost in additional latency
 
 // tracking information for LRU pruning of path elements
 type pruningTracker struct {
+	// how long to wait until pruning this element after its most recent usage
+	pruneAfter		time.Duration
+
 	// the last time this element itself was accessed
 	lastSelfUsed	time.Time
 
@@ -32,13 +35,33 @@ func (p *PathElement) checkForPruning() bool {
 func (p *PathElement) prune() {
 	if p.prunetracker == nil {
 		return
-	}j
+	}
+	if p.prunetracker.retainData {
+		return // this element is not prunable
+	}
+	// if the children are in use, then this element is not prunable
+	if time.Now().Sub(p.prunetracker.lastChildUsed) < p.prunetracker.pruneAfter {
+		return
+	}
+	// if the children are no longer in use, or this element has no children, test if it can be pruned away
+	if time.Now().Sub(p.prunetracker.lastSelfUsed) > p.prunetracker.pruneAfter {
+		p.Delete()
+	}
 
 }
 
 func (p *PathElement) prunechildren() {
 	if p.prunetracker == nil {
 		return
+	}
+	if p.prunetracker.retainData {
+		return // this element, and its children, are not prunable
+	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	for _, element := range p.children {
+		element.prunechildren()
+		element.prune()
 	}
 }
 

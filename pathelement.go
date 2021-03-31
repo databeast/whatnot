@@ -203,12 +203,21 @@ func (m *PathElement) attach(elem *PathElement) (err error) {
 	if elem.children == nil {
 		elem.children = make(map[SubPath]*PathElement)
 	}
+	// propagate our pruning information down to this element as well
+	elem.prunetracker = m.prunetracker
 
 	m.mu.Lock()
 	m.children[elem.SubPath()] = elem
 	m.mu.Unlock()
 
+
 	return nil
+}
+
+func  (m *PathElement) Delete() error {
+
+	// signal that our event-watching goroutine needs to exit
+	m.
 }
 
 // AppendRelativePath constructs an element-relative subpath, append it to an Existing PathElement,
