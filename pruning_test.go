@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+
 func TestElementIsPrunedAfterDuration(t *testing.T) {
 	gns := createTestNamespace(t)
 

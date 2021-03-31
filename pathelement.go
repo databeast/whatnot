@@ -3,12 +3,12 @@ package whatnot
 import (
 	"context"
 	"fmt"
+	"github.com/databeast/whatnot/mutex"
+	"github.com/pkg/errors"
 	"math/rand"
 	"strings"
 	"sync"
-
-	"github.com/databeast/whatnot/mutex"
-	"github.com/pkg/errors"
+	"time"
 )
 
 // PathElement is an individual section of a complete path
@@ -114,15 +114,29 @@ func (m PathElement) fetchSubElement(path SubPath) *PathElement {
 	}
 }
 
-func (m PathElement) logChange(e elementChange) {
+func (m *PathElement) logChange(e elementChange) {
+	if m.prunetracker != nil {
+		if e.change != ChangeDeleted {
+			if e.elem == m {
+				m.prunetracker.lastSelfUsed = time.Now()
+			} else {
+				m.prunetracker.lastChildUsed = time.Now()
+			}
+		}
+	}
 	switch e.change {
-	case ChangeAdded:
-	case ChangeEdited:
-	case ChangeLocked:
-	case ChangeUnlocked:
-	case ChangeDeleted:
-	case ChangeUnknown:
-		// subscriberStats for now - placeholder for later audit logging
+		case ChangeAdded:
+			// TODO: call hook function
+		case ChangeEdited:
+			// TODO: call hook function
+		case ChangeLocked:
+			// TODO: call hook function
+		case ChangeUnlocked:
+			// TODO: call hook function
+		case ChangeDeleted:
+			// TODO: call hook function
+		case ChangeUnknown:
+			// subscriberStats for now - placeholder for later audit logging
 	}
 
 }
