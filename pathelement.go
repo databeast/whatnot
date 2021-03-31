@@ -225,6 +225,9 @@ func  (m *PathElement) Delete() (err error) {
 
 	// cascade the context-cancel signal that our event-watching goroutine needs to exit, along with that of all child elements
 	m.prunefunc()
+	deleteEvent := elementChange{id: rand.Uint64(), elem: m, change: ChangeDeleted}
+	m.parentnotify <- deleteEvent
+	m.selfnotify <- deleteEvent
 
 	// recursively delete all children
 	for _, elem := range m.children {
@@ -233,7 +236,6 @@ func  (m *PathElement) Delete() (err error) {
 			return err // TODO: what happens in this half-deleted state?
 		}
 	}
-	m.parentnotify <- elementChange{id: rand.Uint64(), elem: m, change: ChangeDeleted}
 
 	return nil
 }

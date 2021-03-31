@@ -44,6 +44,8 @@ func (m *PathElement) PreventPruning() {
 }
 
 func (m *PathElement) prune() {
+	m.prunechildren()
+
 	if m.prunetracker == nil {
 		return
 	}
@@ -62,16 +64,7 @@ func (m *PathElement) prune() {
 }
 
 func (m *PathElement) prunechildren() {
-	if m.prunetracker == nil {
-		return
-	}
-	if m.prunetracker.retainData {
-		return // this element, and its children, are not prunable
-	}
-	m.mu.Lock()
-	defer m.mu.Unlock()
 	for _, element := range m.children {
-		element.prunechildren()
 		element.prune()
 	}
 }
