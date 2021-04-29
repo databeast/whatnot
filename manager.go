@@ -2,7 +2,6 @@ package whatnot
 
 import (
 	"fmt"
-
 	"github.com/databeast/whatnot/mutex"
 	"github.com/pkg/errors"
 )
@@ -31,6 +30,7 @@ func NewNamespaceManager(opts ...ManagerOption) (nsm *NameSpaceManager, err erro
 	return nsm, nil
 }
 
+
 // RegisterNamespace actives a name Namespace into the list of actively available and
 // subscribable namespaces
 func (m *NameSpaceManager) RegisterNamespace(ns *Namespace) error {
@@ -41,7 +41,9 @@ func (m *NameSpaceManager) RegisterNamespace(ns *Namespace) error {
 
 	m.mu.Lock()
 	m.namespaces[ns.name] = ns
+	go ns.pruningcheck()
 	m.mu.Unlock()
+
 	m.Info(fmt.Sprintf("registered new namespace %q", ns.name))
 
 	return nil

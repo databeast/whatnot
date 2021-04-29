@@ -14,6 +14,7 @@ const (
 	optionAcls           optionName = "enable element permissions"
 	optionRateLimit      optionName = "lease rate limiting"
 	optionLogger         optionName = "custom log output"
+	optionPruning		 optionName = "unused element pruning"
 )
 
 type ManagerOption interface {
@@ -34,10 +35,12 @@ var WithRaft managerOptionFunc = func() optionName {
 	return optionSyncRaft
 }
 
+// WithTrace enables extended tracing of Resource Locking and Wait Queues
 var WithTrace managerOptionFunc = func() optionName {
 	return optionTrace
 }
 
+// WithDeadlockBreak turns on Whatnot's Self-healing breaking of Mutex Deadlocks
 var WithDeadlockBreak managerOptionFunc = func() optionName {
 	return optionBreak
 }
@@ -46,6 +49,13 @@ var WithDeadlockBreak managerOptionFunc = func() optionName {
 var WithAcls managerOptionFunc = func() optionName {
 	return optionAcls
 }
+
+// WithPruning turns on Whatnot's automatic pruning of Unused PathElement Tree sections after
+// they remain unused for a given amount of time
+var WithPruning managerOptionFunc = func() optionName {
+	return optionAcls
+}
+
 
 func (f managerOptionFunc) apply(manager *NameSpaceManager) (err error) {
 	return

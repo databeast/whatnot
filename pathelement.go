@@ -1,12 +1,14 @@
 package whatnot
 
 import (
+	"context"
 	"fmt"
-	"strings"
-	"sync"
-
 	"github.com/databeast/whatnot/mutex"
 	"github.com/pkg/errors"
+	"math/rand"
+	"strings"
+	"sync"
+	"time"
 )
 
 // PathElement is an individual section of a complete path
@@ -47,7 +49,10 @@ type PathElement struct {
 	// on this Path Element or any of its children
 	subscriberNotify *EventMultiplexer
 
+	// pruning support for shutting down unused areas of the namespace after a duration
 	prunetracker *pruningTracker
+	prunectx 	 context.Context
+	prunefunc 	 context.CancelFunc
 }
 
 // SubPath returns the name of this Path Element
@@ -109,15 +114,29 @@ func (m PathElement) fetchSubElement(path SubPath) *PathElement {
 	}
 }
 
-func (m PathElement) logChange(e elementChange) {
+func (m *PathElement) logChange(e elementChange) {
+	if m.prunetracker != nil {
+		if e.change != ChangeDeleted {
+			if e.elem == m {
+				m.prunetracker.lastSelfUsed = time.Now()
+			} else {
+				m.prunetracker.lastChildUsed = time.Now()
+			}
+		}
+	}
 	switch e.change {
-	case ChangeAdded:
-	case ChangeEdited:
-	case ChangeLocked:
-	case ChangeUnlocked:
-	case ChangeDeleted:
-	case ChangeUnknown:
-		// subscriberStats for now - placeholder for later audit logging
+		case ChangeAdded:
+			// TODO: call hook function
+		case ChangeEdited:
+			// TODO: call hook function
+		case ChangeLocked:
+			// TODO: call hook function
+		case ChangeUnlocked:
+			// TODO: call hook function
+		case ChangeDeleted:
+			// TODO: call hook function
+		case ChangeUnknown:
+			// subscriberStats for now - placeholder for later audit logging
 	}
 
 }
@@ -203,10 +222,34 @@ func (m *PathElement) attach(elem *PathElement) (err error) {
 	if elem.children == nil {
 		elem.children = make(map[SubPath]*PathElement)
 	}
+	// propagate our pruning information down to this element as well
+	elem.prunetracker = m.prunetracker
 
 	m.mu.Lock()
 	m.children[elem.SubPath()] = elem
 	m.mu.Unlock()
+
+
+	return nil
+}
+
+func  (m *PathElement) Delete() (err error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	// cascade the context-cancel signal that our event-watching goroutine needs to exit, along with that of all child elements
+	m.prunefunc()
+	deleteEvent := elementChange{id: rand.Uint64(), elem: m, change: ChangeDeleted}
+	m.parentnotify <- deleteEvent
+	m.selfnotify <- deleteEvent
+
+	// recursively delete all children
+	for _, elem := range m.children {
+		err = elem.Delete()
+		if err != nil {
+			return err // TODO: what happens in this half-deleted state?
+		}
+	}
 
 	return nil
 }

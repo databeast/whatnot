@@ -39,29 +39,36 @@ func (t testlogger) Debug(msg string) {
 }
 
 func (t testlogger) Info(msg string) {
+	t.t.Helper()
 	t.t.Log(msg)
 }
 
 func (t testlogger) Debugf(format string, a ...interface{}) {
+	t.t.Helper()
 	t.t.Logf(format, a...)
 }
 
 func (t testlogger) Infof(format string, a ...interface{}) {
+	t.t.Helper()
 	t.t.Logf(format, a...)
 }
 
 func (t testlogger) Warn(msg string) {
+	t.t.Helper()
 	t.t.Log(msg)
 }
 
 func (t testlogger) Warnf(format string, a ...interface{}) {
+	t.t.Helper()
 	t.t.Logf(format, a...)
 }
 
 func (t testlogger) Error(msg string) {
+	t.t.Helper()
 	t.t.Log(msg)
 }
 
 func (t testlogger) Errorf(format string, a ...interface{}) {
+	t.t.Helper()
 	t.t.Logf(format, a...)
 }

@@ -140,13 +140,28 @@ func (m *PathElement) watchChildren() {
 	go func() {
 		var e elementChange
 		for {
-			select {
-			case e = <-m.subevents:
-				// process events from our children
-				m.Debugf("%s received change notify %d from child: %s", m.AbsolutePath().ToPathString(), e.id, e.elem.AbsolutePath().ToPathString())
-			case e = <-m.selfnotify:
-				// process events from ourself
-				m.Debugf("%s received change notify on self", m.AbsolutePath().ToPathString())
+			if m.prunectx != nil { // need to watch for pruning cancellation
+				select {
+				case e = <-m.subevents:
+					// process events from our children
+					m.Debugf("%s received change notify %d from child: %s", m.AbsolutePath().ToPathString(), e.id, e.elem.AbsolutePath().ToPathString())
+				case e = <-m.selfnotify:
+					// process events from ourself
+					m.Debugf("%s received change notify on self", m.AbsolutePath().ToPathString())
+				case <-m.prunectx.Done():
+					// element is being pruned, we need to shut down this monitoring goroutine
+					m.Debugf("pruning signal received - shutting down event watch goroutine")
+					return
+				}
+			} else { // just watch for path element change events
+				select {
+					case e = <-m.subevents:
+					// process events from our children
+					m.Debugf("%s received change notify %d from child: %s", m.AbsolutePath().ToPathString(), e.id, e.elem.AbsolutePath().ToPathString())
+					case e = <-m.selfnotify:
+					// process events from ourself
+					m.Debugf("%s received change notify on self", m.AbsolutePath().ToPathString())
+				}
 			}
 
 			if e.elem == nil {
