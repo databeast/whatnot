@@ -22,4 +22,9 @@ func (p *SemaphorePool) Return() {
 
 }
 
+// CreateSemaphorePool instantiates a semaphore pool on this path element.
+// prefix will attach the pool to all child elements
+// purge will remove any existing semaphore pool, including from all children if prefix is true
+func (p *PathElement) CreateSemaphorePool(prefix bool, purge bool) {
 
+}
