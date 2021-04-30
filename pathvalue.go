@@ -6,20 +6,20 @@ type ElementValue struct {
 	Val interface{}
 }
 
-func (m *PathElement) SetValue(value ElementValue, change changeType, actor access.Role) {
-	if m == nil {
+func (p *PathElement) SetValue(value ElementValue, change changeType, actor access.Role) {
+	if p == nil {
 		panic("SetValue called on nil PathElement")
 	}
-	m.mu.Lock()
-	m.resval = value
-	m.mu.Unlock()
+	p.mu.Lock()
+	p.resval = value
+	p.mu.Unlock()
 
-	m.parentnotify <- elementChange{elem: m, change: change, actor: actor}
+	p.parentnotify <- elementChange{elem: p, change: change, actor: actor}
 }
 
-func (m *PathElement) GetValue() (value ElementValue) {
-	if m == nil {
+func (p *PathElement) GetValue() (value ElementValue) {
+	if p == nil {
 		panic("GetValue called on nil PathElement")
 	}
-	return m.resval
+	return p.resval
 }

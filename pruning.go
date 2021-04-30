@@ -27,9 +27,9 @@ type pruningTracker struct {
 	retainData		bool
 }
 
-func (m *PathElement) EnablePruningAfter(age time.Duration) {
-	m.prunectx, m.prunefunc = context.WithCancel(context.Background())
-	m.prunetracker = &pruningTracker{
+func (p *PathElement) EnablePruningAfter(age time.Duration) {
+	p.prunectx, p.prunefunc = context.WithCancel(context.Background())
+	p.prunetracker = &pruningTracker{
 		pruneAfter:    age,
 		lastSelfUsed:  time.Now(),
 		lastChildUsed: time.Now(),
@@ -37,34 +37,34 @@ func (m *PathElement) EnablePruningAfter(age time.Duration) {
 	}
 }
 
-func (m *PathElement) PreventPruning() {
-	if m.prunetracker != nil {
-		m.prunetracker.retainData = true
+func (p *PathElement) PreventPruning() {
+	if p.prunetracker != nil {
+		p.prunetracker.retainData = true
 	}
 }
 
-func (m *PathElement) prune() {
-	m.prunechildren()
+func (p *PathElement) prune() {
+	p.prunechildren()
 
-	if m.prunetracker == nil {
+	if p.prunetracker == nil {
 		return
 	}
-	if m.prunetracker.retainData {
+	if p.prunetracker.retainData {
 		return // this element is not prunable
 	}
 	// if the children are in use, then this element is not prunable
-	if time.Now().Sub(m.prunetracker.lastChildUsed) < m.prunetracker.pruneAfter {
+	if time.Now().Sub(p.prunetracker.lastChildUsed) < p.prunetracker.pruneAfter {
 		return
 	}
 	// if the children are no longer in use, or this element has no children, test if it can be pruned away
-	if time.Now().Sub(m.prunetracker.lastSelfUsed) > m.prunetracker.pruneAfter {
-		m.Delete() // TODO: what happens when only partial deletes occur?
+	if time.Now().Sub(p.prunetracker.lastSelfUsed) > p.prunetracker.pruneAfter {
+		p.Delete() // TODO: what happens when only partial deletes occur?
 	}
 
 }
 
-func (m *PathElement) prunechildren() {
-	for _, element := range m.children {
+func (p *PathElement) prunechildren() {
+	for _, element := range p.children {
 		element.prune()
 	}
 }

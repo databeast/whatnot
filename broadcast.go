@@ -56,15 +56,15 @@ func (t *EventMultiplexer) Unregister(ch chan<- WatchEvent) {
 // Messages can be broadcast on this topic,
 // and registered consumers are guaranteed to either receive them, or
 // see a channel close.
-func (m *PathElement) initEventBroadcast() {
-	if m.subscriberNotify != nil {
+func (p *PathElement) initEventBroadcast() {
+	if p.subscriberNotify != nil {
 		// simple reentrance
 		return
 	}
-	m.subscriberNotify = NewEventsMultiplexer()
-	m.subscriberNotify.onElement = m
+	p.subscriberNotify = NewEventsMultiplexer()
+	p.subscriberNotify.onElement = p
 	// start reading incoming events from child elements
-	m.watchChildren()
+	p.watchChildren()
 }
 
 // NewEventsMultiplexer creates a new event multiplexer
@@ -136,31 +136,31 @@ func (t *EventMultiplexer) run(broadcastchan <-chan WatchEvent) {
 // watchChildren is a PathElement-specific goroutine to handle event channels
 // in default mode, this means that goroutine load scales 1-to-1 with total
 // number of distinct pathelements
-func (m *PathElement) watchChildren() {
+func (p *PathElement) watchChildren() {
 	go func() {
 		var e elementChange
 		for {
-			if m.prunectx != nil { // need to watch for pruning cancellation
+			if p.prunectx != nil { // need to watch for pruning cancellation
 				select {
-				case e = <-m.subevents:
+				case e = <-p.subevents:
 					// process events from our children
-					m.Debugf("%s received change notify %d from child: %s", m.AbsolutePath().ToPathString(), e.id, e.elem.AbsolutePath().ToPathString())
-				case e = <-m.selfnotify:
+					p.Debugf("%s received change notify %d from child: %s", p.AbsolutePath().ToPathString(), e.id, e.elem.AbsolutePath().ToPathString())
+				case e = <-p.selfnotify:
 					// process events from ourself
-					m.Debugf("%s received change notify on self", m.AbsolutePath().ToPathString())
-				case <-m.prunectx.Done():
+					p.Debugf("%s received change notify on self", p.AbsolutePath().ToPathString())
+				case <-p.prunectx.Done():
 					// element is being pruned, we need to shut down this monitoring goroutine
-					m.Debugf("pruning signal received - shutting down event watch goroutine")
+					p.Debugf("pruning signal received - shutting down event watch goroutine")
 					return
 				}
 			} else { // just watch for path element change events
 				select {
-					case e = <-m.subevents:
+					case e = <-p.subevents:
 					// process events from our children
-					m.Debugf("%s received change notify %d from child: %s", m.AbsolutePath().ToPathString(), e.id, e.elem.AbsolutePath().ToPathString())
-					case e = <-m.selfnotify:
+					p.Debugf("%s received change notify %d from child: %s", p.AbsolutePath().ToPathString(), e.id, e.elem.AbsolutePath().ToPathString())
+					case e = <-p.selfnotify:
 					// process events from ourself
-					m.Debugf("%s received change notify on self", m.AbsolutePath().ToPathString())
+					p.Debugf("%s received change notify on self", p.AbsolutePath().ToPathString())
 				}
 			}
 
@@ -168,13 +168,13 @@ func (m *PathElement) watchChildren() {
 				panic("elementChange event passed with nil PathElement")
 			}
 			pe := e // clone our event to send upwards, make the data race analyzer happy
-			m.parentnotify <- pe
+			p.parentnotify <- pe
 
 			// then do what we need to do with the event ourselves now
-			m.logChange(e)
+			p.logChange(e)
 
 			// Broadcast the change out to all subscribers
-			m.subscriberNotify.Broadcast <- WatchEvent{
+			p.subscriberNotify.Broadcast <- WatchEvent{
 				id:     e.id,
 				elem:   e.elem,
 				TS:     time.Now(),

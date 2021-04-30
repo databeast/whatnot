@@ -53,52 +53,52 @@ func (l *LeaseContext) Cancel() {
 
 // LockWithLease will lock a single path element with a timed lease on the lock
 // it uses a a background context so cannot be cancelled before the lease expires
-func (m *PathElement) LockWithLease(ttl time.Duration) (ctx *LeaseContext, release func()) {
-	return m.generateLease(context.Background(), ttl, false)
+func (p *PathElement) LockWithLease(ttl time.Duration) (ctx *LeaseContext, release func()) {
+	return p.generateLease(context.Background(), ttl, false)
 }
 
 // ContextLockWithLease will lock a single path element with a timed lease on the lock
 // you provide the context instance to have external control to cancel it before timeout
-func (m *PathElement) ContextLockWithLease(octx context.Context, ttl time.Duration) (ctx *LeaseContext, release func()) {
-	return m.generateLease(octx, ttl, false)
+func (p *PathElement) ContextLockWithLease(octx context.Context, ttl time.Duration) (ctx *LeaseContext, release func()) {
+	return p.generateLease(octx, ttl, false)
 }
 
 // LockPrefixWithLease will lock a path element and all sub-elements with a timed lease on the lock
 // it uses a a background context so cannot be cancelled before the lease expires
-func (m *PathElement) LockPrefixWithLease(ttl time.Duration) (ctx *LeaseContext, release func()) {
-	return m.generateLease(context.Background(), ttl, true)
+func (p *PathElement) LockPrefixWithLease(ttl time.Duration) (ctx *LeaseContext, release func()) {
+	return p.generateLease(context.Background(), ttl, true)
 }
 
 // ContextLockPrefixWithLease will lock a path element and all sub-elements with a timed lease on the lock
 // you provide the context instance to have external control to cancel it before timeout
-func (m *PathElement) ContextLockPrefixWithLease(octx context.Context, ttl time.Duration) (ctx *LeaseContext, release func()) {
-	return m.generateLease(octx, ttl, true)
+func (p *PathElement) ContextLockPrefixWithLease(octx context.Context, ttl time.Duration) (ctx *LeaseContext, release func()) {
+	return p.generateLease(octx, ttl, true)
 }
 
-func (m *PathElement) generateLease(octx context.Context, ttl time.Duration, recursive bool) (ctx *LeaseContext, release func()) {
+func (p *PathElement) generateLease(octx context.Context, ttl time.Duration, recursive bool) (ctx *LeaseContext, release func()) {
 
 	dl, cancel := context.WithTimeout(octx, ttl)
 
 	// lock the resource lock structure itself while changing it
-	m.reslock.selfmu.Lock()
-	m.reslock.deadline = dl
-	m.reslock.selfmu.Unlock()
+	p.reslock.selfmu.Lock()
+	p.reslock.deadline = dl
+	p.reslock.selfmu.Unlock()
 
 	ctx = &LeaseContext{
 		ctx:       dl,
-		elem:      m,
+		elem:      p,
 		recursive: recursive,
 		cancel:    cancel,
 	}
 
 	if recursive {
-		m.LockSubs()
+		p.LockSubs()
 	} else {
-		m.Lock()
+		p.Lock()
 
 	}
 
-	m.unlockAfterExpire()
+	p.unlockAfterExpire()
 
 	return ctx, cancel
 }

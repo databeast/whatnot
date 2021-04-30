@@ -24,17 +24,17 @@ type resourceLock struct {
 }
 
 // unlockAfterExpire sets the given Path Element to remove any leases on it after the given duration
-func (m *PathElement) unlockAfterExpire() {
+func (p *PathElement) unlockAfterExpire() {
 	go func() {
 		select {
-		case <-m.reslock.deadline.Done():
-			if m.reslock.recursive {
+		case <-p.reslock.deadline.Done():
+			if p.reslock.recursive {
 				unlockWg := &sync.WaitGroup{}
 				unlockWg.Add(1)
-				go m.asyncRecursiveUnLockSelfAndSubs(unlockWg)
+				go p.asyncRecursiveUnLockSelfAndSubs(unlockWg)
 				unlockWg.Wait()
 			} else {
-				m.reslock.resmu.Unlock()
+				p.reslock.resmu.Unlock()
 			}
 		}
 	}()
@@ -68,48 +68,48 @@ func (r *resourceLock) unlock() {
 // Lock places a Mutex on this pathElement
 // and sends a notification of this lock to its chain of parent elements
 // this also fulfills the interface Sync.Locker
-func (m *PathElement) Lock() {
-	m.reslock.lock(false)
-	m.selfnotify <- elementChange{id: rand.Uint64(), elem: m, change: ChangeLocked}
+func (p *PathElement) Lock() {
+	p.reslock.lock(false)
+	p.selfnotify <- elementChange{id: rand.Uint64(), elem: p, change: ChangeLocked}
 }
 
 // UnLock will release the Mutex Lock on this path element
 // Note that it will NOT unlock mutexes on sub-element
 // unlocking will sent a notification event to the chain of parent elements
 // this also fulfills the interface Sync.Locker
-func (m *PathElement) UnLock() {
+func (p *PathElement) UnLock() {
 	//NOTE: Subs will Remain Locked when doing this.
-	m.reslock.unlock()
-	m.selfnotify <- elementChange{id: rand.Uint64(), elem: m, change: ChangeUnlocked}
+	p.reslock.unlock()
+	p.selfnotify <- elementChange{id: rand.Uint64(), elem: p, change: ChangeUnlocked}
 }
 
 // LockSubs will lock this Path Element and every Path Element it is a parent to
-func (m *PathElement) LockSubs() {
+func (p *PathElement) LockSubs() {
 	// TODO:  Implement deadlock timeouts and recovery
 	lockwg := &sync.WaitGroup{}
 	lockwg.Add(1)
-	m.asyncRecursiveLockSelfAndSubs(lockwg)
+	p.asyncRecursiveLockSelfAndSubs(lockwg)
 	lockwg.Wait()
-	m.selfnotify <- elementChange{id: rand.Uint64(), elem: m, change: ChangeLocked}
+	p.selfnotify <- elementChange{id: rand.Uint64(), elem: p, change: ChangeLocked}
 }
 
-func (m *PathElement) UnLockSubs() {
+func (p *PathElement) UnLockSubs() {
 	// TODO:  Implement deadlock timeouts and recovery
 	unlockwg := &sync.WaitGroup{}
 	unlockwg.Add(1)
-	m.asyncRecursiveUnLockSelfAndSubs(unlockwg)
+	p.asyncRecursiveUnLockSelfAndSubs(unlockwg)
 	unlockwg.Wait()
-	m.selfnotify <- elementChange{elem: m, change: ChangeUnlocked}
+	p.selfnotify <- elementChange{elem: p, change: ChangeUnlocked}
 }
 
-func (m *PathElement) asyncRecursiveLockSelfAndSubs(parentwg *sync.WaitGroup) {
-	m.reslock.lock(true) // reslock myself first
+func (p *PathElement) asyncRecursiveLockSelfAndSubs(parentwg *sync.WaitGroup) {
+	p.reslock.lock(true) // reslock myself first
 
-	if len(m.children) > 0 {
+	if len(p.children) > 0 {
 		subLockWg := &sync.WaitGroup{}
-		subLockWg.Add(len(m.children)) // always increment the waitgroup delta before allowing anything to start
+		subLockWg.Add(len(p.children)) // always increment the waitgroup delta before allowing anything to start
 
-		for _, v := range m.children {
+		for _, v := range p.children {
 			go v.asyncRecursiveLockSelfAndSubs(subLockWg)
 		}
 		subLockWg.Wait()
@@ -117,15 +117,15 @@ func (m *PathElement) asyncRecursiveLockSelfAndSubs(parentwg *sync.WaitGroup) {
 	parentwg.Done()
 }
 
-func (m *PathElement) asyncRecursiveUnLockSelfAndSubs(parentwg *sync.WaitGroup) {
+func (p *PathElement) asyncRecursiveUnLockSelfAndSubs(parentwg *sync.WaitGroup) {
 
-	m.reslock.unlock() // unlock myself first
+	p.reslock.unlock() // unlock myself first
 
-	if len(m.children) > 0 {
+	if len(p.children) > 0 {
 		subUnlockwg := &sync.WaitGroup{}
-		subUnlockwg.Add(len(m.children)) // always increment the waitgroup delta before allowing anything to start
+		subUnlockwg.Add(len(p.children)) // always increment the waitgroup delta before allowing anything to start
 
-		for _, v := range m.children {
+		for _, v := range p.children {
 			go v.asyncRecursiveUnLockSelfAndSubs(subUnlockwg)
 		}
 	}

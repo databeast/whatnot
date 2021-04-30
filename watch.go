@@ -56,14 +56,14 @@ func (e WatchEvent) OnElement() *PathElement {
 // SubscribeToEvents generates a Watch Subscription that produces a single channel
 // of notification events on the accompanying Path Element, and optionally all of its
 // child path elements
-func (m *PathElement) SubscribeToEvents(prefix bool) *ElementWatchSubscription {
+func (p *PathElement) SubscribeToEvents(prefix bool) *ElementWatchSubscription {
 	sub := &ElementWatchSubscription{
-		onElement:   m,
+		onElement:   p,
 		events:      make(chan WatchEvent),
 		isRecursive: prefix,
 	}
 
-	m.subscriberNotify.Register(sub.events, prefix) // this is the part that will allow us to receive channel messages
+	p.subscriberNotify.Register(sub.events, prefix) // this is the part that will allow us to receive channel messages
 
 	return sub
 }
@@ -71,8 +71,8 @@ func (m *PathElement) SubscribeToEvents(prefix bool) *ElementWatchSubscription {
 // UnSubscribeFromEvents will unregister the notification channel
 // and then nil out the watch subscription that is passed to it.
 // preventing any further reception of events
-func (m *PathElement) UnSubscribeFromEvents(sub *ElementWatchSubscription) {
-	m.subscriberNotify.Unregister(sub.events)
+func (p *PathElement) UnSubscribeFromEvents(sub *ElementWatchSubscription) {
+	p.subscriberNotify.Unregister(sub.events)
 	sub = nil
 }
 
