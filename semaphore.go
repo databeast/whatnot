@@ -18,29 +18,31 @@ limits
 // SemaphorePool is a combined semaphore for use by a PathElement and all its sub Elements
 type SemaphorePool struct {
 	mu *sync.RWMutex
+	maxslots int
+	usedslots int
 }
 
 type SemaphoreClaim struct {
 	fromPool *SemaphorePool
-
 }
 
 // ClaimSingle claims a single unweighted semaphore unit
-func (p *SemaphorePool) ClaimSingle() {
-
+func (p *SemaphorePool) ClaimSingle() (claim *SemaphoreClaim, err error) {
+	return claim, err
 }
 
 // ClaimWeighted claims a numerically weighted semaphore unit,
-func (p *SemaphorePool) ClaimWeighted() {
-
+func (p *SemaphorePool) ClaimWeighted() (claim *SemaphoreClaim, err error) {
+	return claim, err
 }
 
 // ClaimPercentageWeighted claims a semaphore unit, weighted as a percentage of the total semaphore pool
-func (p *SemaphorePool) ClaimPercentageWeighted() {
-
+func (p *SemaphorePool) ClaimPercentageWeighted(poolpercentage int) (claim *SemaphoreClaim, err error) {
+	return claim, err
 }
 
-func (p *SemaphorePool) Return() {
+// Return releases the semaphore claim back to the pool
+func (p *SemaphoreClaim) Return() {
 
 }
 
@@ -54,7 +56,7 @@ type SemaphorePoolOpts struct {
 // purge will remove any existing semaphore pool, including from all children if prefix is true
 func (p *PathElement) CreateSemaphorePool(prefix bool, purge bool, opts SemaphorePoolOpts) (err error) {
 	if !purge && p.semaphores != nil {
-		return errors.New(fmt.Sprintf("semaphore pool already exists for %s", p.AbsolutePath())
+		return errors.New(fmt.Sprintf("semaphore pool already exists for %s", p.AbsolutePath()))
 	}
 	p.semaphores = &SemaphorePool{}
 	if prefix {
