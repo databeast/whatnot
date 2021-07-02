@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 )
 
 /*
@@ -17,15 +18,15 @@ limits
 
 // SemaphorePool is a combined semaphore for use by a PathElement and all its sub Elements
 type SemaphorePool struct {
-	mu *sync.RWMutex
-	maxslots float64
+	mu        *sync.RWMutex
+	maxslots  float64
 	usedslots float64
-	slots 	float64
+	waiting   EventMultiplexer
 }
 
 type SemaphoreClaim struct {
 	fromPool *SemaphorePool
-	slots	 float64
+	slots    float64
 	returned bool // returning amn already returned claim is bad
 }
 
@@ -33,24 +34,25 @@ func (p *SemaphorePool) returnclaim(claim *SemaphoreClaim) (err error) {
 	if claim.returned {
 		return errors.New("this claim has already been returned")
 	}
+	defer func() {
+		// signal out that a claim has been returned, to any waiting claims
+	}()
+
 	p.mu.Lock()
 
-	// has something terribly wrong happened while we weren't looking?
-	if p.slots + claim.slots > p.maxslots + 0.00000001 {
-		// slightly extending the maxslots because floats are weird.
-		p.slots = p.maxslots
+	if p.usedslots+claim.slots > p.maxslots {
+		p.usedslots = p.maxslots
 		p.mu.Unlock()
 		return nil
 	}
 
-	if p.slots - claim.slots < -0.000000001 {
-		// slightly extending the minslots because floats are weird.
-		p.slots = 0
+	if p.usedslots-claim.slots < 0 {
+		p.usedslots = 0
 		p.mu.Unlock()
 		return nil
 	}
 
-	p.slots -= claim.slots
+	p.usedslots -= claim.slots
 
 	p.mu.Unlock()
 	return err
@@ -67,18 +69,27 @@ func (p *SemaphorePool) ClaimWeighted() (claim *SemaphoreClaim, err error) {
 }
 
 // ClaimPercentageWeighted claims a semaphore unit, weighted as a percentage of the total semaphore pool
-func (p *SemaphorePool) ClaimPercentageWeighted(poolpercentage int) (claim *SemaphoreClaim, err error) {
-	// 8 significant digits as maximum, to avoid float weirdness overflows
+func (p *SemaphorePool) ClaimPercentageWeighted(poolpercentage float64, timeout time.Duration) (claim *SemaphoreClaim, err error) {
+	p.mu.Lock()
+	claimslots := p.maxslots / poolpercentage
+	if p.usedslots + claimslots < p.maxslots {
+		// hurrah, we have the pool space available, lets grant it to them and let them get outta here
+		p.usedslots += claimslots
+	}
+	p.mu.Lock()
+	claim = &SemaphoreClaim{}
+
+
 	return claim, err
 }
 
 // Return releases the semaphore claim back to the pool
-func (p *SemaphoreClaim) Return() {
-	p.fromPool.
+func (p *SemaphoreClaim) Return() error {
+	return p.fromPool.returnclaim(p)
 }
 
 type SemaphorePoolOpts struct {
-	PoolWeight int   // Total Pool Weight available to divide amongst claims in this pool
+	PoolSize float64 // Total Pool Weight available to divide amongst claims in this pool
 
 }
 
@@ -89,7 +100,12 @@ func (p *PathElement) CreateSemaphorePool(prefix bool, purge bool, opts Semaphor
 	if !purge && p.semaphores != nil {
 		return errors.New(fmt.Sprintf("semaphore pool already exists for %s", p.AbsolutePath()))
 	}
-	p.semaphores = &SemaphorePool{}
+	p.semaphores = &SemaphorePool{
+		mu:        &sync.RWMutex{},
+		maxslots:  opts.PoolSize,
+		usedslots: 0,
+		waiting:   EventMultiplexer{},
+	}
 	if prefix {
 		for _, c := range p.children {
 			err = c.CreateSemaphorePool(true, purge, opts)
