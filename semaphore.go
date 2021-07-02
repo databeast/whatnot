@@ -18,12 +18,42 @@ limits
 // SemaphorePool is a combined semaphore for use by a PathElement and all its sub Elements
 type SemaphorePool struct {
 	mu *sync.RWMutex
-	maxslots int
-	usedslots int
+	maxslots float64
+	usedslots float64
+	slots 	float64
 }
 
 type SemaphoreClaim struct {
 	fromPool *SemaphorePool
+	slots	 float64
+	returned bool // returning amn already returned claim is bad
+}
+
+func (p *SemaphorePool) returnclaim(claim *SemaphoreClaim) (err error) {
+	if claim.returned {
+		return errors.New("this claim has already been returned")
+	}
+	p.mu.Lock()
+
+	// has something terribly wrong happened while we weren't looking?
+	if p.slots + claim.slots > p.maxslots + 0.00000001 {
+		// slightly extending the maxslots because floats are weird.
+		p.slots = p.maxslots
+		p.mu.Unlock()
+		return nil
+	}
+
+	if p.slots - claim.slots < -0.000000001 {
+		// slightly extending the minslots because floats are weird.
+		p.slots = 0
+		p.mu.Unlock()
+		return nil
+	}
+
+	p.slots -= claim.slots
+
+	p.mu.Unlock()
+	return err
 }
 
 // ClaimSingle claims a single unweighted semaphore unit
@@ -38,12 +68,13 @@ func (p *SemaphorePool) ClaimWeighted() (claim *SemaphoreClaim, err error) {
 
 // ClaimPercentageWeighted claims a semaphore unit, weighted as a percentage of the total semaphore pool
 func (p *SemaphorePool) ClaimPercentageWeighted(poolpercentage int) (claim *SemaphoreClaim, err error) {
+	// 8 significant digits as maximum, to avoid float weirdness overflows
 	return claim, err
 }
 
 // Return releases the semaphore claim back to the pool
 func (p *SemaphoreClaim) Return() {
-
+	p.fromPool.
 }
 
 type SemaphorePoolOpts struct {
