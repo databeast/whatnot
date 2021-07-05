@@ -3,6 +3,7 @@ package whatnot
 import (
 	"errors"
 	"fmt"
+	"github.com/databeast/whatnot/access"
 	"sync"
 	"time"
 )
@@ -21,7 +22,7 @@ type SemaphorePool struct {
 	mu        *sync.RWMutex
 	maxslots  float64
 	usedslots float64
-	waiting   EventMultiplexer
+	waiting   *EventMultiplexer
 }
 
 type SemaphoreClaim struct {
@@ -54,6 +55,14 @@ func (p *SemaphorePool) returnclaim(claim *SemaphoreClaim) (err error) {
 
 	p.usedslots -= claim.slots
 
+	p.waiting.Broadcast <- WatchEvent{
+		id:     0,
+		elem:   nil,
+		TS:     time.Now(),
+		Change: ChangeReleased,
+		Actor:  access.Role{},
+		Note:   "",
+	}
 	p.mu.Unlock()
 	return err
 }
@@ -71,7 +80,7 @@ func (p *SemaphorePool) ClaimSingle(timeout time.Duration) (claim *SemaphoreClai
 		}
 
 		p.mu.Lock()
-		p.usedslots += 1
+		p.usedslots ++
 		p.mu.Unlock()
 		return claim, nil
 	}
@@ -154,13 +163,15 @@ func (p *PathElement) CreateSemaphorePool(prefix bool, purge bool, opts Semaphor
 		mu:        &sync.RWMutex{},
 		maxslots:  opts.PoolSize,
 		usedslots: 0,
-		waiting:   EventMultiplexer{},
+		waiting:   NewEventsMultiplexer(),
 	}
+
+
+
 	if prefix {
 		for _, c := range p.children {
-			err = c.CreateSemaphorePool(true, purge, opts)
-			if err != nil {
-				return err
+			if c.semaphores == nil || purge {
+				c.semaphores = p.semaphores
 			}
 		}
 	}

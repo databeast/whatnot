@@ -15,6 +15,7 @@ const (
 	ChangeAdded
 	ChangeEdited
 	ChangeDeleted
+	ChangeReleased
 )
 
 // elementChange is a notification channel structure
