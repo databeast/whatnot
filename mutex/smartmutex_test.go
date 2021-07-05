@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func TestLockQueingStats(t *testing.T) {
+func TestLockQueuingStats(t *testing.T) {
 	//TODO: Still have a race condition here - not critical since this functionality is informational only
 	Opts.Tracing = true
 	m1 := New("m1")

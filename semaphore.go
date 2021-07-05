@@ -59,9 +59,60 @@ func (p *SemaphorePool) returnclaim(claim *SemaphoreClaim) (err error) {
 }
 
 // ClaimSingle claims a single unweighted semaphore unit
-func (p *SemaphorePool) ClaimSingle() (claim *SemaphoreClaim, err error) {
-	return claim, err
+func (p *SemaphorePool) ClaimSingle(timeout time.Duration) (claim *SemaphoreClaim, err error) {
+	p.mu.RLock()
+	if p.usedslots + 1 <= p.maxslots { // free slot, lets go
+		p.mu.RUnlock()
+
+		claim = &SemaphoreClaim{
+			fromPool: p,
+			slots:    1,
+			returned: false,
+		}
+
+		p.mu.Lock()
+		p.usedslots += 1
+		p.mu.Unlock()
+		return claim, nil
+	}
+	// and now we play the waiting game..
+	return p.waitForSlot(1, timeout)
+
 }
+
+func (p *SemaphorePool) waitForSlot(slots float64, timeout time.Duration) (claim *SemaphoreClaim, err error) {
+	notify := make(chan WatchEvent)
+	p.waiting.Register(notify, true)
+	tick := time.NewTimer(timeout)
+	for {
+		select {
+		case <-notify:
+			// ok, we've got a release notification, will this give us enough space?
+			p.mu.RLock()
+			if p.usedslots + slots <= p.maxslots {
+				p.mu.RUnlock()
+				p.mu.Lock()
+				p.usedslots += slots
+				p.mu.Unlock()
+				claim = &SemaphoreClaim{
+					fromPool: p,
+					slots:    slots,
+					returned: false,
+				}
+				p.waiting.Unregister(notify)
+				return claim, nil
+			}
+			p.mu.RUnlock()
+			// otherwise, just loop around and wait for the next signal
+		case <-tick.C:
+			// timeout has occurred
+			p.waiting.Unregister(notify)
+			return nil, errors.New("timeout passed waiting for available semaphore slots")
+		}
+	}
+}
+
+
 
 // ClaimWeighted claims a numerically weighted semaphore unit,
 func (p *SemaphorePool) ClaimWeighted() (claim *SemaphoreClaim, err error) {
