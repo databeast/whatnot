@@ -89,6 +89,7 @@ func (p *SemaphorePool) ClaimSingle(timeout time.Duration) (claim *SemaphoreClai
 
 }
 
+// loop that waits for a signal from another Claim being released, to check if there's enough space left in the pool
 func (p *SemaphorePool) waitForSlot(slots float64, timeout time.Duration) (claim *SemaphoreClaim, err error) {
 	notify := make(chan WatchEvent)
 	p.waiting.Register(notify, true)
@@ -130,17 +131,23 @@ func (p *SemaphorePool) ClaimWeighted() (claim *SemaphoreClaim, err error) {
 
 // ClaimPercentageWeighted claims a semaphore unit, weighted as a percentage of the total semaphore pool
 func (p *SemaphorePool) ClaimPercentageWeighted(poolpercentage float64, timeout time.Duration) (claim *SemaphoreClaim, err error) {
-	p.mu.Lock()
+	p.mu.RLock()
 	claimslots := p.maxslots / poolpercentage
-	if p.usedslots + claimslots < p.maxslots {
+	if p.usedslots + claimslots <= p.maxslots {
+		p.mu.RUnlock()
+		p.mu.Lock()
 		// hurrah, we have the pool space available, lets grant it to them and let them get outta here
 		p.usedslots += claimslots
+		claim = &SemaphoreClaim{
+			fromPool: p,
+			slots:    claimslots,
+			returned: false,
+		}
+		p.mu.Unlock()
+		return claim, nil
 	}
-	p.mu.Lock()
-	claim = &SemaphoreClaim{}
-
-
-	return claim, err
+	// got to wait in line for what we want
+	return p.waitForSlot(claimslots, timeout)
 }
 
 // Return releases the semaphore claim back to the pool
@@ -165,7 +172,6 @@ func (p *PathElement) CreateSemaphorePool(prefix bool, purge bool, opts Semaphor
 		usedslots: 0,
 		waiting:   NewEventsMultiplexer(),
 	}
-
 
 
 	if prefix {
