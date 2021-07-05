@@ -90,7 +90,6 @@ func (p *SemaphoreClaim) Return() error {
 
 type SemaphorePoolOpts struct {
 	PoolSize float64 // Total Pool Weight available to divide amongst claims in this pool
-
 }
 
 // CreateSemaphorePool instantiates a semaphore pool on this path element.

@@ -4,12 +4,14 @@ go 1.14
 
 require (
 	github.com/databeast/whatnotcluster v0.0.0-20210217035503-943cd5efde6f // indirect
+	github.com/go-kit/kit v0.10.0 // indirect
+	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/petermattis/goid v0.0.0-20180202154549-b0b1615b78e5
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.9.0
-	github.com/prometheus/procfs v0.5.0 // indirect
-	github.com/stretchr/testify v1.4.0
-	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
-	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c // indirect
-	google.golang.org/protobuf v1.25.0 // indirect
+	github.com/prometheus/client_golang v1.11.0
+	github.com/prometheus/common v0.29.0 // indirect
+	github.com/stretchr/testify v1.7.0
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
+	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
+	google.golang.org/protobuf v1.27.1 // indirect
 )

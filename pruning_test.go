@@ -26,8 +26,8 @@ func TestElementIsPrunedAfterDuration(t *testing.T) {
 	elem.EnablePruningAfter(time.Second)
 
 	events := elem.SubscribeToEvents(true)
-	testtimeout, _  := context.WithTimeout(context.Background(), pruneInterval + time.Hour) // we need to wait for the pruning interval to trigger
-
+	testtimeout, cancel  := context.WithTimeout(context.Background(), pruneInterval + time.Hour) // we need to wait for the pruning interval to trigger
+	defer cancel()
 
 	select {
 	case e := <- events.Events():
