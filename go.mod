@@ -1,10 +1,8 @@
 module github.com/databeast/whatnot
 
-go 1.14
+go 1.16
 
 require (
-	github.com/databeast/whatnotcluster v0.0.0-20210217035503-943cd5efde6f // indirect
-	github.com/go-kit/kit v0.10.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/petermattis/goid v0.0.0-20180202154549-b0b1615b78e5
 	github.com/pkg/errors v0.9.1
