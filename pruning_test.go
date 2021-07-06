@@ -31,10 +31,10 @@ func TestElementIsPrunedAfterDuration(t *testing.T) {
 
 	select {
 	case e := <- events.Events():
-		if e.Change == ChangeDeleted {
+		if e.Change == ChangePruned {
 			t.Log("element signaled pruning")
 		} else {
-			t.Error("incorrect element change event received")
+			t.Errorf("incorrect element change event %d received", e.Change)
 		}
 
 	case <- testtimeout.Done():

@@ -165,11 +165,11 @@ func (p *PathElement) watchChildren() {
 
 						// Broadcast the change out to all subscribers
 						p.subscriberNotify.Broadcast <- WatchEvent{
-							id:     e.id,
-							elem:   e.elem,
+							id:     randid.Uint64(),
+							elem:   p,
 							TS:     time.Now(),
 							Note:   "",
-							Change: e.change,
+							Change: ChangePruned,
 							Actor:  e.actor,
 						}
 						return
