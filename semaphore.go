@@ -58,7 +58,7 @@ func (p *SemaphorePool) returnclaim(claim *SemaphoreClaim) (err error) {
 
 	p.onElement.parentnotify <- elementChange{
 		id:     0,
-		elem:   p,
+		elem:   p.onElement,
 		change: ChangeReleased,
 		actor:  access.Role{},
 	}
