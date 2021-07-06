@@ -15,6 +15,7 @@ const (
 	ChangeAdded
 	ChangeEdited
 	ChangeDeleted
+	ChangePruned
 	ChangeReleased
 )
 

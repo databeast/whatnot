@@ -1,6 +1,7 @@
 package whatnot
 
 import (
+	"github.com/databeast/whatnot/access"
 	"sync"
 	"time"
 )
@@ -142,16 +143,36 @@ func (p *PathElement) watchChildren() {
 		for {
 			if p.prunectx != nil { // need to watch for pruning cancellation
 				select {
-				case e = <-p.subevents:
-					// process events from our children
-					p.Debugf("%s received change notify %d from child: %s", p.AbsolutePath().ToPathString(), e.id, e.elem.AbsolutePath().ToPathString())
-				case e = <-p.selfnotify:
-					// process events from ourself
-					p.Debugf("%s received change notify on self", p.AbsolutePath().ToPathString())
-				case <-p.prunectx.Done():
-					// element is being pruned, we need to shut down this monitoring goroutine
-					p.Debugf("pruning signal received - shutting down event watch goroutine")
-					return
+					case e = <-p.subevents:
+						// process events from our children
+						p.Debugf("%s received change notify %d from child: %s", p.AbsolutePath().ToPathString(), e.id, e.elem.AbsolutePath().ToPathString())
+					case e = <-p.selfnotify:
+						// process events from ourself
+						p.Debugf("%s received change notify on self", p.AbsolutePath().ToPathString())
+					case <-p.prunectx.Done():
+						// element is being pruned, we need to shut down this monitoring goroutine
+						// but first send this final notification upwards
+						p.Debugf("pruning signal received - shutting down event watch goroutine")
+						p.parentnotify <- elementChange{
+							id:     randid.Uint64(),
+							elem:   p,
+							change: ChangePruned,
+							actor:  access.Role{},
+						}
+
+						// then do what we need to do with the event ourselves now
+						p.logChange(e)
+
+						// Broadcast the change out to all subscribers
+						p.subscriberNotify.Broadcast <- WatchEvent{
+							id:     e.id,
+							elem:   e.elem,
+							TS:     time.Now(),
+							Note:   "",
+							Change: e.change,
+							Actor:  e.actor,
+						}
+						return
 				}
 			} else { // just watch for path element change events
 				select {
