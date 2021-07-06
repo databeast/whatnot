@@ -55,16 +55,16 @@ func (p *SemaphorePool) returnclaim(claim *SemaphoreClaim) (err error) {
 	}
 
 	p.usedslots -= claim.slots
-
+	id := randid.Uint64()
 	p.onElement.parentnotify <- elementChange{
-		id:     0,
+		id:     id,
 		elem:   p.onElement,
 		change: ChangeReleased,
 		actor:  access.Role{},
 	}
 
 	p.waiting.Broadcast <- WatchEvent{
-		id:     0,
+		id:     randid.Uint64(),
 		elem:   nil,
 		TS:     time.Now(),
 		Change: ChangeReleased,
