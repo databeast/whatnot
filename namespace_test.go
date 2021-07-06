@@ -3,10 +3,8 @@ package whatnot
 import (
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/sync/errgroup"
-	"math/rand"
 	"path"
 	"testing"
-	"time"
 )
 
 var manager *NameSpaceManager
@@ -53,9 +51,7 @@ var maxTestPathEnds = 7
 
 var created []string
 
-// random generator
-var src = rand.NewSource(time.Now().UnixNano())
-var r = rand.New(src)
+
 
 func populateNamespaceWithRandomFiles(t *testing.T) {
 	gns := createTestNamespace(t)
@@ -93,7 +89,7 @@ func populateNamespaceWithRandomFiles(t *testing.T) {
 func (ns *Namespace) GenerateRandomPaths(root string, startdepth int) (err error) {
 	numfiles := maxTestPathEnds
 	if randomLayout {
-		numfiles = r.Intn(numfiles) + 1
+		numfiles = randid.Intn(numfiles) + 1
 	}
 
 	for i := 0; i < numfiles; i++ {
@@ -105,12 +101,12 @@ func (ns *Namespace) GenerateRandomPaths(root string, startdepth int) (err error
 	if startdepth+1 <= maxTestPathDepth {
 		numdirs := maxTestPathWidth
 		if randomLayout {
-			numdirs = r.Intn(numdirs) + 1
+			numdirs = randid.Intn(numdirs) + 1
 		}
 
 		for i := 0; i < numdirs; i++ {
 			if randomLayout {
-				if r.Intn(2) != 0 { // randomize created or not
+				if randid.Intn(2) != 0 { // randomize created or not
 					if err = ns.randomAbsolutePath(root, startdepth+1); err != nil {
 						return err
 					}
@@ -129,7 +125,7 @@ func (ns *Namespace) GenerateRandomPaths(root string, startdepth int) (err error
 func (ns *Namespace) randomPathName(length int, alphabet []rune) string {
 	b := make([]rune, length)
 	for i := range b {
-		b[i] = alphabet[rand.Intn(len(alphabet))]
+		b[i] = alphabet[randid.Intn(len(alphabet))]
 	}
 	return string(b)
 }
@@ -139,7 +135,7 @@ func (ns *Namespace) randomAbsolutePath(root string, depth int) (err error) {
 		return
 	}
 
-	n := rand.Intn(maxTestElementNameSize-4) + 4
+	n := randid.Intn(maxTestElementNameSize-4) + 4
 	name := ns.randomPathName(n, SimpleElementNames)
 	root = path.Join(root, name)
 
@@ -147,7 +143,7 @@ func (ns *Namespace) randomAbsolutePath(root string, depth int) (err error) {
 }
 
 func (ns *Namespace) createRandomPathElement(root string) error {
-	name := ns.randomPathName(rand.Intn(8), SimpleElementNames)
+	name := ns.randomPathName(randid.Intn(8), SimpleElementNames)
 	filepath := path.Join(root, name)
 	created = append(created, filepath)
 	if linearCreate {

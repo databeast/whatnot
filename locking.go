@@ -2,7 +2,6 @@ package whatnot
 
 import (
 	"context"
-	"math/rand"
 	"sync"
 	"time"
 
@@ -70,7 +69,7 @@ func (r *resourceLock) unlock() {
 // this also fulfills the interface Sync.Locker
 func (p *PathElement) Lock() {
 	p.reslock.lock(false)
-	p.selfnotify <- elementChange{id: rand.Uint64(), elem: p, change: ChangeLocked}
+	p.selfnotify <- elementChange{id: randid.Uint64(), elem: p, change: ChangeLocked}
 }
 
 // UnLock will release the Mutex Lock on this path element
@@ -80,7 +79,7 @@ func (p *PathElement) Lock() {
 func (p *PathElement) UnLock() {
 	//NOTE: Subs will Remain Locked when doing this.
 	p.reslock.unlock()
-	p.selfnotify <- elementChange{id: rand.Uint64(), elem: p, change: ChangeUnlocked}
+	p.selfnotify <- elementChange{id: randid.Uint64(), elem: p, change: ChangeUnlocked}
 }
 
 // LockSubs will lock this Path Element and every Path Element it is a parent to
@@ -90,7 +89,7 @@ func (p *PathElement) LockSubs() {
 	lockwg.Add(1)
 	p.asyncRecursiveLockSelfAndSubs(lockwg)
 	lockwg.Wait()
-	p.selfnotify <- elementChange{id: rand.Uint64(), elem: p, change: ChangeLocked}
+	p.selfnotify <- elementChange{id: randid.Uint64(), elem: p, change: ChangeLocked}
 }
 
 func (p *PathElement) UnLockSubs() {

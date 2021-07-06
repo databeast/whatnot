@@ -19,6 +19,7 @@ limits
 
 // SemaphorePool is a combined semaphore for use by a PathElement and all its sub Elements
 type SemaphorePool struct {
+	onElement *PathElement
 	mu        *sync.RWMutex
 	maxslots  float64
 	usedslots float64
@@ -54,6 +55,13 @@ func (p *SemaphorePool) returnclaim(claim *SemaphoreClaim) (err error) {
 	}
 
 	p.usedslots -= claim.slots
+
+	p.onElement.parentnotify <- elementChange{
+		id:     0,
+		elem:   p,
+		change: ChangeReleased,
+		actor:  access.Role{},
+	}
 
 	p.waiting.Broadcast <- WatchEvent{
 		id:     0,
@@ -167,6 +175,7 @@ func (p *PathElement) CreateSemaphorePool(prefix bool, purge bool, opts Semaphor
 		return errors.New(fmt.Sprintf("semaphore pool already exists for %s", p.AbsolutePath()))
 	}
 	p.semaphores = &SemaphorePool{
+		onElement: p,
 		mu:        &sync.RWMutex{},
 		maxslots:  opts.PoolSize,
 		usedslots: 0,

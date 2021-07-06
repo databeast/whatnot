@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/databeast/whatnot/mutex"
 	"github.com/pkg/errors"
-	"math/rand"
 	"strings"
 	"sync"
 	"time"
@@ -242,7 +241,7 @@ func  (p *PathElement) Delete() (err error) {
 
 	// cascade the context-cancel signal that our event-watching goroutine needs to exit, along with that of all child elements
 	p.prunefunc()
-	deleteEvent := elementChange{id: rand.Uint64(), elem: p, change: ChangeDeleted}
+	deleteEvent := elementChange{id: randid.Uint64(), elem: p, change: ChangeDeleted}
 	p.parentnotify <- deleteEvent
 	p.selfnotify <- deleteEvent
 
