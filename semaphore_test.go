@@ -36,13 +36,18 @@ func TestSemaphoreClaim(t *testing.T) {
 		if !assert.Nil(t, err) {
 			t.Error(err)
 		}
+		t.Logf("claiming semaphore %d", i)
 		claims = append(claims, claim)
 	}
-	for _, c := range claims {
+	t.Log("waiting for semaphore claim 11 to fail after timeout")
+	_, err = elem.semaphores.ClaimSingle(time.Second)
+	assert.NotNilf(t, err, "semaphore claim did not time out")
+	for i, c := range claims {
 		err = c.Return()
 		if !assert.Nil(t, err) {
 			t.Error(err)
 		}
+		t.Logf("Releasing Semaphore %d", i+1)
 	}
 
 

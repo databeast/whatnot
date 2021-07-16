@@ -92,6 +92,7 @@ func (p *SemaphorePool) ClaimSingle(timeout time.Duration) (claim *SemaphoreClai
 		p.mu.Unlock()
 		return claim, nil
 	}
+	p.mu.RUnlock()
 	// and now we play the waiting game..
 	return p.waitForSlot(1, timeout)
 
