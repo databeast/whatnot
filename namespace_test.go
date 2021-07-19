@@ -41,7 +41,7 @@ var ComplexElementNames = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRST
 // randomize path depth - will massive reduce overall path generation
 // and produced a 'jagged' namespace
 var randomLayout = false
-var linearCreate = false // generate path elements as they are named, or do as concurrent batch
+const linearCreate = false // generate path elements as they are named, or do as concurrent batch
 var maxTestElementNameSize = 32
 var maxTestPathDepth = 5 // careful changing this one, since its the primary exponent
 var maxTestPathWidth = 5

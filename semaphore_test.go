@@ -2,6 +2,7 @@ package whatnot
 
 import (
 	"context"
+	"github.com/databeast/whatnot/mutex"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -45,6 +46,43 @@ func TestSemaphoreClaim(t *testing.T) {
 		}
 		t.Logf("Releasing Semaphore %d", i+1)
 	}
+}
 
+func TestPoolAcrossPrefixChildren(t *testing.T) {
+	elem := PathElement{
+		logsupport:       logsupport{},
+		mu:               mutex.New("test"),
+		section:          "",
+		parent:           nil,
+		children:         make(map[SubPath]*PathElement),
+		parentnotify:     nil,
+		subevents:        nil,
+		selfnotify:       nil,
+		reslock:          resourceLock{},
+		resval:           ElementValue{},
+		subscriberNotify: nil,
+		prunetracker:     nil,
+		prunectx:         nil,
+		prunefunc:        nil,
+		semaphores:       nil,
+	}
+	err := elem.CreateSemaphorePool(true, false, SemaphorePoolOpts{PoolSize: 10})
+
+	if !assert.Nil(t, err) {
+		t.Error(err)
+	}
+
+	//THIS IS DEADLOCKING
+
+	t.Log("creating children from prefix")
+	e1, err := elem.Add("sub1")
+	assert.NotNil(t, e1)
+	assert.Nil(t, err)
+	e2, err := elem.Add("sub2")
+	assert.NotNil(t, e2)
+	assert.Nil(t, err)
+	e3, err := elem.Add("sub3")
+	assert.NotNil(t, e3)
+	assert.Nil(t, err)
 
 }

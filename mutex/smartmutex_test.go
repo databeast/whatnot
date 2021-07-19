@@ -2,6 +2,7 @@ package mutex
 
 import (
 	"github.com/stretchr/testify/assert"
+	"sync"
 	"testing"
 	"time"
 )
@@ -47,7 +48,8 @@ func TestLockStatus(t *testing.T) {
 func TestDeadlock(t *testing.T)  {
 	var detected bool
 	Opts.Tracing = true
-	Opts.OnPotentialDeadlock= func(){t.Log("received deadlock detection") ; detected = true}
+	detectedlock := &sync.Mutex{}
+	Opts.OnPotentialDeadlock= func(){t.Log("received deadlock detection") ; detectedlock.Lock() ; detected = true ; detectedlock.Unlock()}
 	m1 := New("m1")
 	t.Log("forcing a recursive lock")
 	go func() {
@@ -55,5 +57,7 @@ func TestDeadlock(t *testing.T)  {
 		m1.Lock()
 	}()
 	time.Sleep(time.Second)
+	detectedlock.Lock()
 	assert.True(t, detected, "deadlock not detected")
+	detectedlock.Unlock()
 }

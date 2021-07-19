@@ -126,6 +126,8 @@ func (m *rwmutex) RLock() {
 
 // Queue returns the number of goroutines currently waiting to obtain a deadlockcheck on this mutex
 func (m *SmartMutex) Queue() int {
+	m.statuslock.Lock()
+	defer m.statuslock.Unlock()
 	return m.count
 }
 
