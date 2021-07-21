@@ -56,6 +56,18 @@ func (ns *Namespace) RegisterAbsolutePath(path AbsolutePath) error {
 	return nil
 }
 
+func (ns *Namespace) FetchOrCreateAbsolutePath(path PathString) (elem *PathElement, err error ) {
+	elem= ns.FetchAbsolutePath(path)
+	if elem == nil {
+		err = ns.RegisterAbsolutePath(path.ToAbsolutePath())
+		if err != nil {
+			return
+		}
+		elem = ns.FetchAbsolutePath(path)
+	}
+	return
+}
+
 // FetchAbsolutePath will return the PathElement instance at the end of the provided Path
 // assuming it exists, otherwise it returns Nil
 func (ns *Namespace) FetchAbsolutePath(path PathString) *PathElement {

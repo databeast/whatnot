@@ -49,28 +49,14 @@ func TestSemaphoreClaim(t *testing.T) {
 }
 
 func TestPoolAcrossPrefixChildren(t *testing.T) {
-	elem := PathElement{
-		logsupport:       logsupport{},
-		mu:               mutex.New("test"),
-		section:          "",
-		parent:           nil,
-		children:         make(map[SubPath]*PathElement),
-		parentnotify:     nil,
-		subevents:        nil,
-		selfnotify:       nil,
-		reslock:          resourceLock{},
-		resval:           ElementValue{},
-		subscriberNotify: nil,
-		prunetracker:     nil,
-		prunectx:         nil,
-		prunefunc:        nil,
-		semaphores:       nil,
-	}
-	err := elem.CreateSemaphorePool(true, false, SemaphorePoolOpts{PoolSize: 10})
+	mutex.Opts.DisableDeadlockDetection = true
+	nsm, _ := NewNamespaceManager()
+	_ = nsm.RegisterNamespace(NewNamespace("test"))
+	ns, _ := nsm.FetchNamespace("test")
 
-	if !assert.Nil(t, err) {
-		t.Error(err)
-	}
+	elem,err := ns.FetchOrCreateAbsolutePath("/path/to/test/data")
+
+
 
 	//THIS IS DEADLOCKING
 
@@ -84,5 +70,12 @@ func TestPoolAcrossPrefixChildren(t *testing.T) {
 	e3, err := elem.Add("sub3")
 	assert.NotNil(t, e3)
 	assert.Nil(t, err)
+
+	err = elem.CreateSemaphorePool(true, false, SemaphorePoolOpts{PoolSize: 10})
+	if !assert.Nil(t, err) {
+		t.Error(err)
+	}
+	t.Log("created shared semaphore pool across children")
+
 
 }
