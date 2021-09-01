@@ -3,6 +3,7 @@ package mutex
 import (
 	"fmt"
 	"sync"
+	"sync/atomic"
 )
 
 // SmartMutex is a more extensive Mutex structure
@@ -18,8 +19,7 @@ type SmartMutex struct {
 	statuslock *sync.Mutex // internal mutex for controlling status flags
 	locked     bool        // best-guess status flag to determine if the mutex is currently held
 
-	countlock *sync.Mutex // internal mutex for controlling wait count status
-	count     int         // best-guess status for how many goroutines are waiting to hold this mutex
+	count     int32         // best-guess status for how many goroutines are waiting to hold this mutex
 
 }
 
@@ -53,7 +53,7 @@ func (m *SmartMutex) SoftLock() {
 	m.statuslock.Unlock()
 	if Opts.Tracing == true {
 		m.countlock.Lock()
-		m.trace(fmt.Sprintf("pass-through softlock on %s is waiting for %d existing locks to release", m.name, m.count))
+		m.trace(fmt.Sprintf("pass-through softlock on %s is waiting for %d existing locks to release", m.name, atomic.LoadInt32(&m.count)))
 		m.countlock.Unlock()
 	}
 	m.Lock()
@@ -76,12 +76,11 @@ func (m *SmartMutex) IsLocked() bool {
 func (m *SmartMutex) Lock() {
 	m.statuslock.Lock()
 	if m.locked == true {
-		m.countlock.Lock()
-		if m.count > 0 {
-			m.trace(fmt.Sprintf("waiting for lock on %s to release (%d already in queue)", m.name, m.count))
+
+		if atomic.LoadInt32(&m.count) > 0 {
+			m.trace(fmt.Sprintf("waiting for lock on %s to release (%d already in queue)", m.name, atomic.LoadInt32(&m.count)))
 		}
-		m.count++
-		m.countlock.Unlock()
+		atomic.AddInt32(&m.count,1)
 	}
 	m.statuslock.Unlock()
 
@@ -125,17 +124,15 @@ func (m *rwmutex) RLock() {
 }
 
 // Queue returns the number of goroutines currently waiting to obtain a deadlockcheck on this mutex
-func (m *SmartMutex) Queue() int {
-	m.statuslock.Lock()
-	defer m.statuslock.Unlock()
-	return m.count
+func (m *SmartMutex) Queue() int32 {
+	return atomic.LoadInt32(&m.count)
 }
 
 // Unlock implements standard Mutex Unlocking, with deadlockcheck wait queue tracking support
 func (m *SmartMutex) Unlock() {
 	if Opts.Tracing {
-		if m.count > 1 {
-			m.trace(fmt.Sprintf("releasing mutex deadlockcheck on %s (%d still in queue)", m.name, m.count))
+		if atomic.LoadInt32(&m.count) > 1 {
+			m.trace(fmt.Sprintf("releasing mutex deadlockcheck on %s (%d still in queue)", m.name, atomic.LoadInt32(&m.count)))
 		}
 	}
 
@@ -148,10 +145,11 @@ func (m *SmartMutex) Unlock() {
 		}
 	}()
 
-	if m.count > 0 {
-		m.countlock.Lock()
-		m.count--
-		m.countlock.Unlock()
+	if atomic.LoadInt32(&m.count) > 0 {
+
+	}
+	if atomic.LoadInt32(&m.count) > 0 {
+		atomic.AddInt32(&m.count,1)
 	}
 
 	m.statuslock.Lock()
