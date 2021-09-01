@@ -14,7 +14,7 @@ const (
 	optionAcls           optionName = "enable element permissions"
 	optionRateLimit      optionName = "lease rate limiting"
 	optionLogger         optionName = "custom log output"
-	optionPruning		 optionName = "unused element pruning"
+	optionPruning        optionName = "unused element pruning"
 )
 
 type ManagerOption interface {
@@ -55,7 +55,6 @@ var WithAcls managerOptionFunc = func() optionName {
 var WithPruning managerOptionFunc = func() optionName {
 	return optionAcls
 }
-
 
 func (f managerOptionFunc) apply(manager *NameSpaceManager) (err error) {
 	return

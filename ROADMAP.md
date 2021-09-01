@@ -1,6 +1,6 @@
 # Roadmap
 
-* Semaphore Pool Support 
+* Semaphore Pool Support
 * BSON value storage and type registration
 * clustering:
     * direct cluster declaration
@@ -12,11 +12,11 @@
 
 
 * Element Tags?
-  * fetch (all) by tag/state ?
-  
+    * fetch (all) by tag/state ?
+
 
 * Resource Culling
- * clear out sections of the Namespace after they haven't been accessed in (duration)
+* clear out sections of the Namespace after they haven't been accessed in (duration)
 
   
 

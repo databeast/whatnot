@@ -45,11 +45,16 @@ func TestLockStatus(t *testing.T) {
 	assert.False(t, m1.IsLocked(), "mutex does not declare itself as unlocked")
 }
 
-func TestDeadlock(t *testing.T)  {
+func TestDeadlock(t *testing.T) {
 	var detected bool
 	Opts.Tracing = true
 	detectedlock := &sync.Mutex{}
-	Opts.OnPotentialDeadlock= func(){t.Log("received deadlock detection") ; detectedlock.Lock() ; detected = true ; detectedlock.Unlock()}
+	Opts.OnPotentialDeadlock = func() {
+		t.Log("received deadlock detection")
+		detectedlock.Lock()
+		detected = true
+		detectedlock.Unlock()
+	}
 	m1 := New("m1")
 	t.Log("forcing a recursive lock")
 	go func() {

@@ -15,16 +15,16 @@ at a small cost in additional latency
 // tracking information for LRU pruning of path elements
 type pruningTracker struct {
 	// how long to wait until pruning this element after its most recent usage
-	pruneAfter		time.Duration
+	pruneAfter time.Duration
 
 	// the last time this element itself was accessed
-	lastSelfUsed	time.Time
+	lastSelfUsed time.Time
 
 	// the last time any of this elements children were accessed
-	lastChildUsed	time.Time
+	lastChildUsed time.Time
 
 	// do not prune this element if it, or any of its childre, have a Value set
-	retainData		bool
+	retainData bool
 }
 
 func (p *PathElement) EnablePruningAfter(age time.Duration) {
@@ -69,18 +69,14 @@ func (p *PathElement) prunechildren() {
 	}
 }
 
-
 const pruneInterval = time.Second * 5
 
 func (n *Namespace) pruningcheck() {
 	startpruning := time.Tick(pruneInterval)
 	select {
-	case <- startpruning:
+	case <-startpruning:
 		n.root.prunechildren()
 	}
 
 	//TODO : WHAT HAPPENS WHEN PRUNING TAKES LONG THAN PRUNING INTERVAL?
 }
-
-
-

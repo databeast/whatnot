@@ -133,7 +133,6 @@ func (t *EventMultiplexer) run(broadcastchan <-chan WatchEvent) {
 	t.lock.Unlock()
 }
 
-
 // watchChildren is a PathElement-specific goroutine to handle event channels
 // in default mode, this means that goroutine load scales 1-to-1 with total
 // number of distinct pathelements
@@ -143,43 +142,43 @@ func (p *PathElement) watchChildren() {
 		for {
 			if p.prunectx != nil { // need to watch for pruning cancellation
 				select {
-					case e = <-p.subevents:
-						// process events from our children
-						p.Debugf("%s received change notify %d from child: %s", p.AbsolutePath().ToPathString(), e.id, e.elem.AbsolutePath().ToPathString())
-					case e = <-p.selfnotify:
-						// process events from ourself
-						p.Debugf("%s received change notify on self", p.AbsolutePath().ToPathString())
-					case <-p.prunectx.Done():
-						// element is being pruned, we need to shut down this monitoring goroutine
-						// but first send this final notification upwards
-						p.Debugf("pruning signal received - shutting down event watch goroutine")
-						p.parentnotify <- elementChange{
-							id:     randid.Uint64(),
-							elem:   p,
-							change: ChangePruned,
-							actor:  access.Role{},
-						}
+				case e = <-p.subevents:
+					// process events from our children
+					p.Debugf("%s received change notify %d from child: %s", p.AbsolutePath().ToPathString(), e.id, e.elem.AbsolutePath().ToPathString())
+				case e = <-p.selfnotify:
+					// process events from ourself
+					p.Debugf("%s received change notify on self", p.AbsolutePath().ToPathString())
+				case <-p.prunectx.Done():
+					// element is being pruned, we need to shut down this monitoring goroutine
+					// but first send this final notification upwards
+					p.Debugf("pruning signal received - shutting down event watch goroutine")
+					p.parentnotify <- elementChange{
+						id:     randid.Uint64(),
+						elem:   p,
+						change: ChangePruned,
+						actor:  access.Role{},
+					}
 
-						// then do what we need to do with the event ourselves now
-						p.logChange(e)
+					// then do what we need to do with the event ourselves now
+					p.logChange(e)
 
-						// Broadcast the change out to all subscribers
-						p.subscriberNotify.Broadcast <- WatchEvent{
-							id:     randid.Uint64(),
-							elem:   p,
-							TS:     time.Now(),
-							Note:   "",
-							Change: ChangePruned,
-							Actor:  e.actor,
-						}
-						return
+					// Broadcast the change out to all subscribers
+					p.subscriberNotify.Broadcast <- WatchEvent{
+						id:     randid.Uint64(),
+						elem:   p,
+						TS:     time.Now(),
+						Note:   "",
+						Change: ChangePruned,
+						Actor:  e.actor,
+					}
+					return
 				}
 			} else { // just watch for path element change events
 				select {
-					case e = <-p.subevents:
+				case e = <-p.subevents:
 					// process events from our children
 					p.Debugf("%s received change notify %d from child: %s", p.AbsolutePath().ToPathString(), e.id, e.elem.AbsolutePath().ToPathString())
-					case e = <-p.selfnotify:
+				case e = <-p.selfnotify:
 					// process events from ourself
 					p.Debugf("%s received change notify on self", p.AbsolutePath().ToPathString())
 				}

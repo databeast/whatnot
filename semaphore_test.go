@@ -28,7 +28,7 @@ func TestSemaphoreClaim(t *testing.T) {
 	timeout, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	for i := 1 ; i <= 10 ; i ++ {
+	for i := 1; i <= 10; i++ {
 		claim, err := elem.semaphores.Claim(timeout, 1)
 		if !assert.Nil(t, err) {
 			t.Error(err)
@@ -54,9 +54,7 @@ func TestPoolAcrossPrefixChildren(t *testing.T) {
 	_ = nsm.RegisterNamespace(NewNamespace("test"))
 	ns, _ := nsm.FetchNamespace("test")
 
-	elem,err := ns.FetchOrCreateAbsolutePath("/path/to/test/data")
-
-
+	elem, err := ns.FetchOrCreateAbsolutePath("/path/to/test/data")
 
 	//THIS IS DEADLOCKING
 
@@ -76,6 +74,5 @@ func TestPoolAcrossPrefixChildren(t *testing.T) {
 		t.Error(err)
 	}
 	t.Log("created shared semaphore pool across children")
-
 
 }

@@ -30,7 +30,6 @@ func NewNamespaceManager(opts ...ManagerOption) (nsm *NameSpaceManager, err erro
 	return nsm, nil
 }
 
-
 // RegisterNamespace actives a name Namespace into the list of actively available and
 // subscribable namespaces
 func (m *NameSpaceManager) RegisterNamespace(ns *Namespace) error {

@@ -50,11 +50,11 @@ type PathElement struct {
 
 	// pruning support for shutting down unused areas of the namespace after a duration
 	prunetracker *pruningTracker
-	prunectx 	 context.Context
-	prunefunc 	 context.CancelFunc
+	prunectx     context.Context
+	prunefunc    context.CancelFunc
 
 	// semaphore pool support
-	semaphores 	 *SemaphorePool
+	semaphores *SemaphorePool
 }
 
 // SubPath returns the name of this Path Element
@@ -127,18 +127,18 @@ func (p *PathElement) logChange(e elementChange) {
 		}
 	}
 	switch e.change {
-		case ChangeAdded:
-			// TODO: call hook function
-		case ChangeEdited:
-			// TODO: call hook function
-		case ChangeLocked:
-			// TODO: call hook function
-		case ChangeUnlocked:
-			// TODO: call hook function
-		case ChangeDeleted:
-			// TODO: call hook function
-		case ChangeUnknown:
-			// subscriberStats for now - placeholder for later audit logging
+	case ChangeAdded:
+		// TODO: call hook function
+	case ChangeEdited:
+		// TODO: call hook function
+	case ChangeLocked:
+		// TODO: call hook function
+	case ChangeUnlocked:
+		// TODO: call hook function
+	case ChangeDeleted:
+		// TODO: call hook function
+	case ChangeUnknown:
+		// subscriberStats for now - placeholder for later audit logging
 	}
 
 }
@@ -231,11 +231,10 @@ func (p *PathElement) attach(elem *PathElement) (err error) {
 	p.children[elem.SubPath()] = elem
 	p.mu.Unlock()
 
-
 	return nil
 }
 
-func  (p *PathElement) Delete() (err error) {
+func (p *PathElement) Delete() (err error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 

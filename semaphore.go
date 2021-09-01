@@ -104,6 +104,7 @@ func (p *SemaphorePool) Claim(ctx context.Context, slots int64) (claim *Semaphor
 	return p.waitForSlot(ctx, slots)
 
 }
+
 // loop that waits for a signal from another Claim being released, to check if there's enough space left in the pool
 func (p *SemaphorePool) waitForSlot(ctx context.Context, slots int64) (claim *SemaphoreClaim, err error) {
 	// putting this here to not write the same code in multiple places
