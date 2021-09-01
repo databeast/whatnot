@@ -31,7 +31,6 @@ func New(identifier string) *SmartMutex {
 	return &SmartMutex{
 		name:       identifier,
 		mu:         &rwmutex{},
-		countlock:  &sync.Mutex{},
 		statuslock: &sync.Mutex{},
 	}
 }
@@ -52,9 +51,7 @@ func (m *SmartMutex) SoftLock() {
 
 	m.statuslock.Unlock()
 	if Opts.Tracing == true {
-		m.countlock.Lock()
 		m.trace(fmt.Sprintf("pass-through softlock on %s is waiting for %d existing locks to release", m.name, atomic.LoadInt32(&m.count)))
-		m.countlock.Unlock()
 	}
 	m.Lock()
 	m.Unlock()

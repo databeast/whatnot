@@ -62,7 +62,7 @@ func populateNamespaceWithRandomFiles(t *testing.T) {
 	if linearCreate == false {
 		t.Logf("concurrently creating %d absolute paths", len(created))
 		eg := errgroup.Group{}
-		for i, p = range created {
+		for i, p = range created { // over 8192 goroutines and the race condition tester dies
 			e := p
 			eg.Go(func() error {
 				return gns.RegisterAbsolutePath(PathString(e).ToAbsolutePath())
@@ -75,6 +75,7 @@ func populateNamespaceWithRandomFiles(t *testing.T) {
 	}
 
 	t.Logf("check for successful creation of %d absolute paths", len(created))
+
 	for i, p = range created {
 		elem := gns.FetchAbsolutePath(PathString(p))
 		if !assert.NotNil(t, elem, "created element was not returned") {
@@ -144,7 +145,9 @@ func (ns *Namespace) randomAbsolutePath(root string, depth int) (err error) {
 func (ns *Namespace) createRandomPathElement(root string) error {
 	name := ns.randomPathName(randid.Intn(8), SimpleElementNames)
 	filepath := path.Join(root, name)
-	created = append(created, filepath)
+	if len(created) < 1000 { // limit it to 1000 to accomodate the race condition detector
+		created = append(created, filepath)
+	}
 	if linearCreate {
 		return ns.RegisterAbsolutePath(PathString(filepath).ToAbsolutePath())
 	} else {
