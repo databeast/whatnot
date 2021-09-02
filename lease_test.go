@@ -9,6 +9,7 @@ import (
 func TestLeaseCreationAndExpiration(t *testing.T) {
 	t.Run("Create a new lease", createNewLeaseOnPathElement)
 	t.Run("Test that Lease expires after set time", leaseExpiresAsExpected)
+	t.Run("Test that lease responds to context cancellation", leaseAcceptsCancelation)
 }
 
 func createNewLeaseOnPathElement(t *testing.T) {
@@ -69,4 +70,32 @@ func leaseExpiresAsExpected(t *testing.T) {
 func leaseAcceptsCancelation(t *testing.T) {
 	t.Log("Creating a lease and then cancelling it prematurely")
 
+	gns := createTestNamespace(t)
+	err := gns.RegisterAbsolutePath(PathString("/testelement").ToAbsolutePath())
+	if !assert.Nil(t, err, "registering path returned error") {
+		t.Error(err.Error())
+		return
+	}
+	elem := gns.FetchAbsolutePath("/testelement")
+
+	leaseStart := time.Now()
+	leaseFor := time.Second * 5
+
+	ctx, cancel := elem.LockWithLease(leaseFor)
+	if !assert.Nil(t, err, "creating lease returned error") {
+		t.Error(err.Error())
+		return
+	}
+
+	go func() {
+		time.Sleep(time.Second)
+		t.Log("sending cancel")
+		cancel()
+	}()
+
+	<- ctx.Done()
+	t.Log("cancellation received")
+	if leaseStart.Add(leaseFor).Before(time.Now()) {
+		t.Errorf("context did not cancel before lease expired")
+	}
 }
