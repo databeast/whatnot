@@ -29,7 +29,7 @@ func TestLockQueuingStats(t *testing.T) {
 	}()
 
 	time.Sleep(time.Second)
-	assert.Equal(t, 3, m1.Queue(), "did not indicate 3 waiting locks in queue")
+	assert.Equal(t, int32(3), m1.Queue(), "did not indicate 3 waiting locks in queue")
 
 }
 
