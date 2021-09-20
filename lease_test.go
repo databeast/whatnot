@@ -10,6 +10,7 @@ func TestLeaseCreationAndExpiration(t *testing.T) {
 	t.Run("Create a new lease", createNewLeaseOnPathElement)
 	t.Run("Test that Lease expires after set time", leaseExpiresAsExpected)
 	t.Run("Test that lease responds to context cancellation", leaseAcceptsCancelation)
+	t.Run("Test that element prefix can be locked and unlocked", lockPrefixThenUnlock)
 }
 
 func createNewLeaseOnPathElement(t *testing.T) {
@@ -95,7 +96,37 @@ func leaseAcceptsCancelation(t *testing.T) {
 
 	<- ctx.Done()
 	t.Log("cancellation received")
+	t.Log(ctx.Err())
 	if leaseStart.Add(leaseFor).Before(time.Now()) {
 		t.Errorf("context did not cancel before lease expired")
 	}
+}
+
+
+func lockPrefixThenUnlock(t *testing.T) {
+	t.Log("Creating an element, locking it and all its children, then unlocking them")
+
+	gns := createTestNamespace(t)
+	err := gns.RegisterAbsolutePath(PathString("/testelement").ToAbsolutePath())
+	if !assert.Nil(t, err, "registering path returned error") {
+		t.Error(err.Error())
+		return
+	}
+	elem := gns.FetchAbsolutePath("/testelement")
+
+	elem.LockSubs()
+	t.Log("locked")
+	go func() {
+		time.Sleep(time.Second)
+		t.Log("doing recursive unlock")
+		elem.UnLockSubs()
+		t.Log("Unlocked")
+	}()
+	t.Log("acquiring additional lock, waiting for old one to release")
+	elem.Lock()
+	t.Log("old lock cancelled, new lock acquired")
+	elem.UnLock()
+	t.Log("lock released")
+
+
 }

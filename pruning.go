@@ -64,12 +64,15 @@ func (p *PathElement) prune() {
 }
 
 func (p *PathElement) prunechildren() {
-	for _, element := range p.children {
+	p.mu.Lock()
+	prunelist := p.children // take a copy to get around having to mutex this for long times
+	p.mu.Unlock()
+ 	for _, element := range prunelist {
 		element.prune()
 	}
 }
 
-const pruneInterval = time.Second * 5
+const pruneInterval = time.Second * 60
 
 func (n *Namespace) pruningcheck() {
 	startpruning := time.Tick(pruneInterval)
