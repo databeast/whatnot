@@ -4,11 +4,12 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/petermattis/goid"
 	"io/ioutil"
 	"runtime"
 	"sync"
 	"time"
+
+	"github.com/petermattis/goid"
 )
 
 const deadlockdumpheader = "POTENTIAL DEADLOCK:"

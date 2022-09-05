@@ -1,10 +1,11 @@
 package whatnot
 
 import (
-	"github.com/stretchr/testify/assert"
-	"golang.org/x/sync/errgroup"
 	"path"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"golang.org/x/sync/errgroup"
 )
 
 var manager *NameSpaceManager

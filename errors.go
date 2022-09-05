@@ -1,3 +1,4 @@
+//go:build !errtrace
 // +build !errtrace
 
 package whatnot

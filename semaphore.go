@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/databeast/whatnot/access"
-	"golang.org/x/sync/semaphore"
 	"sync"
 	"time"
+
+	"github.com/databeast/whatnot/access"
+	"golang.org/x/sync/semaphore"
 )
 
 /*
@@ -78,7 +79,6 @@ func (p *SemaphorePool) returnclaim(claim *SemaphoreClaim) (err error) {
 	return err
 }
 
-//
 // with use the provided context for timeout/cancellation
 func (p *SemaphorePool) Claim(ctx context.Context, slots int64) (claim *SemaphoreClaim, err error) {
 	if slots > p.maxslots {

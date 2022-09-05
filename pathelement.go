@@ -3,11 +3,12 @@ package whatnot
 import (
 	"context"
 	"fmt"
-	"github.com/databeast/whatnot/mutex"
-	"github.com/pkg/errors"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/databeast/whatnot/mutex"
+	"github.com/pkg/errors"
 )
 
 // PathElement is an individual section of a complete path

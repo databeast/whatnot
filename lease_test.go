@@ -1,9 +1,10 @@
 package whatnot
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLeaseCreationAndExpiration(t *testing.T) {
@@ -94,14 +95,13 @@ func leaseAcceptsCancelation(t *testing.T) {
 		cancel()
 	}()
 
-	<- ctx.Done()
+	<-ctx.Done()
 	t.Log("cancellation received")
 	t.Log(ctx.Err())
 	if leaseStart.Add(leaseFor).Before(time.Now()) {
 		t.Errorf("context did not cancel before lease expired")
 	}
 }
-
 
 func lockPrefixThenUnlock(t *testing.T) {
 	t.Log("Creating an element, locking it and all its children, then unlocking them")
@@ -127,6 +127,5 @@ func lockPrefixThenUnlock(t *testing.T) {
 	t.Log("old lock cancelled, new lock acquired")
 	elem.UnLock()
 	t.Log("lock released")
-
 
 }

@@ -120,7 +120,7 @@ func (p *PathElement) asyncRecursiveUnLockSelfAndSubs(parentwg *sync.WaitGroup) 
 	p.reslock.unlock() // unlock myself first
 
 	subUnlockwg := &sync.WaitGroup{}
- 
+
 	for _, v := range p.children {
 		subUnlockwg.Add(1) // always increment the waitgroup delta before allowing anything to start
 		go v.asyncRecursiveUnLockSelfAndSubs(subUnlockwg)

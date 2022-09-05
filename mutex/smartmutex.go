@@ -19,7 +19,7 @@ type SmartMutex struct {
 	statuslock *sync.Mutex // internal mutex for controlling status flags
 	locked     bool        // best-guess status flag to determine if the mutex is currently held
 
-	count     int32         // best-guess status for how many goroutines are waiting to hold this mutex
+	count int32 // best-guess status for how many goroutines are waiting to hold this mutex
 
 }
 
@@ -77,7 +77,7 @@ func (m *SmartMutex) Lock() {
 		if atomic.LoadInt32(&m.count) > 0 {
 			m.trace(fmt.Sprintf("waiting for lock on %s to release (%d already in queue)", m.name, atomic.LoadInt32(&m.count)))
 		}
-		atomic.AddInt32(&m.count,1)
+		atomic.AddInt32(&m.count, 1)
 	}
 	m.statuslock.Unlock()
 
@@ -146,7 +146,7 @@ func (m *SmartMutex) Unlock() {
 
 	}
 	if atomic.LoadInt32(&m.count) > 0 {
-		atomic.AddInt32(&m.count,1)
+		atomic.AddInt32(&m.count, 1)
 	}
 
 	m.statuslock.Lock()

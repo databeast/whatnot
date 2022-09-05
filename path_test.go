@@ -1,8 +1,9 @@
 package whatnot
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPathConstruction(t *testing.T) {

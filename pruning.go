@@ -67,7 +67,7 @@ func (p *PathElement) prunechildren() {
 	p.mu.Lock()
 	prunelist := p.children // take a copy to get around having to mutex this for long times
 	p.mu.Unlock()
- 	for _, element := range prunelist {
+	for _, element := range prunelist {
 		element.prune()
 	}
 }

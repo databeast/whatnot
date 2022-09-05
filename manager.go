@@ -2,6 +2,7 @@ package whatnot
 
 import (
 	"fmt"
+
 	"github.com/databeast/whatnot/mutex"
 	"github.com/pkg/errors"
 )

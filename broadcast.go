@@ -1,9 +1,10 @@
 package whatnot
 
 import (
-	"github.com/databeast/whatnot/access"
 	"sync"
 	"time"
+
+	"github.com/databeast/whatnot/access"
 )
 
 /*

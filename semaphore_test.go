@@ -2,10 +2,11 @@ package whatnot
 
 import (
 	"context"
-	"github.com/databeast/whatnot/mutex"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/databeast/whatnot/mutex"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestClaimOverMax(t *testing.T) {

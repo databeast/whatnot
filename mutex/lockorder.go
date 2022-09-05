@@ -4,8 +4,9 @@ package mutex
 
 import (
 	"fmt"
-	"github.com/petermattis/goid"
 	"sync"
+
+	"github.com/petermattis/goid"
 )
 
 type lockOrder struct {
