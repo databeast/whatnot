@@ -76,9 +76,11 @@ const pruneInterval = time.Second * 60
 
 func (n *Namespace) pruningcheck() {
 	startpruning := time.Tick(pruneInterval)
-	select {
-	case <-startpruning:
-		n.root.prunechildren()
+	for {
+		select {
+		case <-startpruning:
+			n.root.prunechildren()
+		}
 	}
 
 	//TODO : WHAT HAPPENS WHEN PRUNING TAKES LONG THAN PRUNING INTERVAL?

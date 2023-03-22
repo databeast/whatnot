@@ -236,7 +236,11 @@ func (p *PathElement) attach(elem *PathElement) (err error) {
 }
 
 func (p *PathElement) Delete() (err error) {
+	if p.mu.IsLocked() {
+		panic("recursive")
+	}
 	p.mu.Lock()
+
 	defer p.mu.Unlock()
 
 	// cascade the context-cancel signal that our event-watching goroutine needs to exit, along with that of all child elements
@@ -247,9 +251,11 @@ func (p *PathElement) Delete() (err error) {
 
 	// recursively delete all children
 	for _, elem := range p.children {
-		err = elem.Delete()
-		if err != nil {
-			return err // TODO: what happens in this half-deleted state?
+		if elem != nil {
+			err = elem.Delete()
+			if err != nil {
+				return err // TODO: what happens in this half-deleted state?
+			}
 		}
 	}
 

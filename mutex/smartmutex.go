@@ -73,7 +73,6 @@ func (m *SmartMutex) IsLocked() bool {
 func (m *SmartMutex) Lock() {
 	m.statuslock.Lock()
 	if m.locked == true {
-
 		if atomic.LoadInt32(&m.count) > 0 {
 			m.trace(fmt.Sprintf("waiting for lock on %s to release (%d already in queue)", m.name, atomic.LoadInt32(&m.count)))
 		}
